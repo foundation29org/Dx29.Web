@@ -1,0 +1,18 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<ul class="nav nav-tabs nav-bold nav-tabs-line">
+    @TabItems
+</ul>
+
+<div class="tab-content">
+    @TabItemContents
+</div>
+
+@code
+{
+    [Parameter]
+    public RenderFragment TabItems { get; set; }
+
+    [Parameter]
+    public RenderFragment TabItemContents { get; set; }
+}

@@ -1,0 +1,22 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@if (Status == CaseStatus.Sharing.ToString())
+{
+    <i class="mt-3 icon-md fas fa-share-alt text-primary" title="@Localize[Status]" />
+}
+else if (Status == CaseStatus.Shared.ToString())
+{
+    <i class="mt-3 icon-md fas fa-share-alt text-success" title="@Localize[Status]" />
+}
+else
+{
+    <i class="mt-3 icon-md fas fa-lock" title="@Localize["Private"]" />
+}
+
+@code
+{
+    [Parameter]
+    public string Status { get; set; }
+}

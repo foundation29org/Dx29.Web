@@ -1,0 +1,148 @@
+﻿@namespace Dx29.Data
+
+@inject TimelineService TimelineTransform
+
+@inject LocalizationService Localize
+
+<EditForm EditContext="@editContext">
+    <DataAnnotationsValidator />
+
+    <div class="row">
+        <div class="col-xl-11">
+            <a class="text-primary font-size-h4 font-weight-bolder" style="cursor:pointer !important;" @onclick="()=>OpenSymptomDialog(FormItem)">@FormItem.Name</a>
+        </div>
+        <div class="col-xl-1">
+            <DropMenu>
+                <DropMenuItem OnClick="() => AddNotes()" IsEmpty="@(showNotes)">
+                    <Icon><i class="icon-lg flaticon2-file-1"></i></Icon>
+                    <Caption> @Localize["Add notes"] </Caption>
+                </DropMenuItem>
+            </DropMenu>
+        </div>
+        <div class="col-xl-6">
+            <div class="form-group">
+                <label>@Localize["Start date"]</label>
+                <InputDate class="form-control form-control-solid form-control-lg" Value="@FormItem.StartDate" ValueExpression="@( () => FormItem.StartDate )" ValueChanged="(DateTimeOffset? date) => ChangeStartHandler(date)" />
+                <div class="mt-2 text-danger">
+                    <ValidationMessage For="() => FormItem.StartDate" />
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="form-group">
+                <label>@Localize["End date"]</label>
+                <InputDate class="form-control form-control-solid form-control-lg" Value="@FormItem.EndDate" ValueExpression="@( () => FormItem.EndDate )" ValueChanged="(DateTimeOffset? date) => ChangeEndHandler(date)" disabled=@endDateDisabled />
+                <div class="mt-2 text-danger">
+                    <ValidationMessage For="() => FormItem.EndDate" />
+                </div>
+            </div>
+        </div>
+        @if (showNotes)
+        {
+            <div class="col-xl-11">
+                <div class="form-group">
+                    <label>@Localize["Notes"]</label>
+                    <InputText Class="form-control form-control-solid form-control-lg" autocomplete="off" Value="@FormItem.Notes" ValueExpression="@( () => FormItem.Notes )" ValueChanged="(string note)=> ChangeNotesHandler(note)" />
+                </div>
+                <div class="mt-2 text-danger">
+                    <ValidationMessage For="() => FormItem.Notes" />
+                </div>
+            </div>
+            <div class="col-xl-1">
+                <div class="form-group">
+                    <a href="#" @onclick="()=>DeleteNotes()" @onclick:preventDefault>
+                        <i class="icon-sm icon-nm flaticon2-cross"></i>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</EditForm>
+
+<SymptomTimelineDialog @ref="SymptomTimelineDialog"/>
+
+@code {
+
+    [Parameter]
+    public SymptomTimelineItem FormItem { get; set; }
+
+    [Parameter]
+    public EventCallback OnChange { get; set; }
+
+    private EditContext editContext;
+    private bool showNotes = false;
+    private bool endDateDisabled = true;
+
+    private DateTimeOffset MaxDateTimeOffset = DateTimeOffset.Now;
+
+    private SymptomTimelineDialog SymptomTimelineDialog;
+
+    protected override void OnInitialized()
+    {
+        if (FormItem.StartDate != null)
+        {
+            endDateDisabled = false;
+        }
+        if (FormItem.Notes != null)
+        {
+            showNotes = true;
+        }
+        editContext = new EditContext(FormItem);
+    }
+
+    private async void ChangeStartHandler(DateTimeOffset? date)
+    {
+        FormItem.StartDate = date;
+        if (date != null)
+        {
+            endDateDisabled = false;
+        }
+        else
+        {
+            FormItem.EndDate = null;
+            endDateDisabled = true;
+        }
+
+        StateHasChanged();
+        await OnChange.InvokeAsync();
+    }
+
+    private async void ChangeEndHandler(DateTimeOffset? date)
+    {
+        FormItem.EndDate = date;
+        StateHasChanged();
+        await OnChange.InvokeAsync();
+    }
+
+    private async void ChangeNotesHandler(string note)
+    {
+        FormItem.Notes = note;
+        StateHasChanged();
+        await OnChange.InvokeAsync();
+    }
+
+    private void AddNotes()
+    {
+        showNotes = true;
+        StateHasChanged();
+    }
+    private void DeleteNotes()
+    {
+        FormItem.Notes = null;
+        showNotes = false;
+        StateHasChanged();
+
+    }
+
+    public bool Validate()
+    {
+        return editContext.Validate();
+    }
+
+
+
+    private void OpenSymptomDialog(SymptomTimelineItem item)
+    {
+        SymptomTimelineDialog.Open(item);
+    }
+}

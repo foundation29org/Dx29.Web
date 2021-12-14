@@ -1,0 +1,44 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@typeparam TItem
+
+<li class="navi-item mb-1 d-flex">
+    <div class="font-size-h6 font-weight-bolder opacity-70">@Caption</div>
+</li>
+@if (Items == null)
+{
+    <li class="navi-item my-0 d-flex">
+        <div class="ml-10 text-truncate-1 font-italic text-primary">Loading...</div>
+    </li>
+}
+else
+{
+    foreach (var item in Items)
+    {
+        <li class="navi-item my-0 d-flex">
+            @NavigationSectionTemplate(item)
+        </li>
+    }
+    if (NavigationSectionLast != null)
+    {
+        <li class="navi-item my-0 d-flex">
+            @NavigationSectionLast
+        </li>
+    }
+}
+<li class="py-2"></li>
+
+@code
+{
+    [Parameter]
+    public string Caption { get; set; }
+
+    [Parameter]
+    public IList<TItem> Items { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> NavigationSectionTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment NavigationSectionLast { get; set; }
+}

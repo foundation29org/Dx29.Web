@@ -1,0 +1,44 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+<h3>@Localize["Summary"]</h3>
+<h4 class="mb-6 text-black-50">@Localize["Review and commit"]</h4>
+
+<div class="font-size-h6 font-italic">@Localize["You are about to process genotype information with the following data:"]</div>
+
+<div class="form-group row my-2">
+    <label class="col-3 col-form-label">@Localize["Genotype Files"]</label>
+    <div class="col-9 pt-3">
+        @foreach (var item in Files)
+        {
+            <div class="form-control-plaintext font-weight-bolder p-0 m-0 text-truncate-1">@item.Name</div>
+        }
+    </div>
+
+    <label class="col-3 col-form-label">@Localize["Proband"]</label>
+    <div class="col-9 pt-3">
+        <div class="form-control-plaintext font-weight-bolder p-0 m-0 text-truncate-1">@Proband</div>    </div>
+
+</div>
+
+@code
+{
+
+    [Parameter]
+    public IList<FileItem> Files { get; set; }
+
+    [Parameter]
+    public string Proband { get; set; }
+
+
+    public void Refresh(string proband)
+    {
+        if (proband != null)
+        {
+            Proband = proband;
+        }
+        StateHasChanged();
+    }
+
+}

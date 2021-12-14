@@ -1,0 +1,29 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@if (Item != null)
+{
+    <FormGroup Caption="@Caption">
+        <div class="my-2">@Item</div>
+    </FormGroup>
+}
+@if (Items != null)
+{
+    <FormGroup Caption="@Caption">
+        @foreach (var item in Items)
+        {
+            <div class="my-2">@item</div>
+        }
+    </FormGroup>
+}
+
+@code
+{
+    [Parameter]
+    public string Caption { get; set; }
+
+    [Parameter]
+    public string Item { get; set; }
+
+    [Parameter]
+    public IEnumerable<string> Items { get; set; }
+}

@@ -1,0 +1,51 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@if (HasItems)
+{
+    <div class="row">
+        @if (Item.Courses.Count > 0)
+        {
+            <div class="@GetColSize()">
+                <h6 style="font-weight: bold;"> Clinical courses </h6>
+                @foreach (var course in Item.Courses)
+                {
+                    <a class="d-block" href=@course.Link target="_blank">
+                        @course.Name
+                    </a>
+                    <span class="text-truncate-1 opa-50">@course.Desc</span>
+                }
+            </div>
+        }
+        @if (Item.Modifiers.Count > 0)
+        {
+            <div class="@GetColSize()">
+                <h6 style="font-weight: bold;"> Clinical modifiers </h6>
+                @foreach (var modifier in Item.Modifiers)
+                {
+                    <a class="d-block" href=@modifier.Link target="_blank">
+                        @modifier.Name
+                    </a>
+                    <span class="text-truncate-1 opa-50">@modifier.Desc</span>
+                }
+            </div>
+        }
+    </div>
+    <Separator H="4" />
+}
+
+@code
+{
+    [Parameter]
+    public DiffDisease Item { get; set; }
+
+    private bool HasItems => Item.Courses.Count > 0 || Item.Modifiers.Count > 0;
+
+    private string GetColSize()
+    {
+        if (Item.Courses.Count > 0 && Item.Modifiers.Count > 0)
+        {
+            return "col-md-6";
+        }
+        return "col-md-12";
+    }
+}

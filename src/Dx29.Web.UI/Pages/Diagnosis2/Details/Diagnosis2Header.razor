@@ -1,0 +1,43 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+<div class="row">
+    <div class="col-xl-12">
+        <div class="text-sm-left"> @Localize["Search and select the diagnosed disease. Browse information of its symptoms, clinical trials and patient groups."]</div>
+        <div class="mt-8">
+            <Diagnosis2Searcher DiseaseChanged="(id) => OnValueChangedAsync(id, true)"></Diagnosis2Searcher>
+        </div>
+    </div>
+    <div class="col-xl-12 py-8">
+        <Diagnosis2DataAnalysis CaseSummary="@CaseSummary" CaseId="@CaseId" DiseaseChanged="(id) => OnValueChangedAsync(id, false)" @ref="Diagnosis2DataAnalysis"></Diagnosis2DataAnalysis>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public MedicalCaseSummary CaseSummary { get; set; } = null;
+
+    [Parameter]
+    public EventCallback<string> DiseaseChanged { get; set; }
+
+    private Diagnosis2DataAnalysis Diagnosis2DataAnalysis;
+
+    public async Task OnValueChangedAsync(string id, bool fromSearcher)
+    {
+        if (id != null)
+        {
+            if (fromSearcher == true)
+            {
+                Diagnosis2DataAnalysis.ResetNav();
+            }
+            await DiseaseChanged.InvokeAsync(id);
+        }
+    }
+}

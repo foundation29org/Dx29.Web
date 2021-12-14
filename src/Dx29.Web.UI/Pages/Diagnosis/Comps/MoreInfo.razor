@@ -1,0 +1,27 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@if (Item.XRefs != null)
+{
+    int counter = 0;
+    List<XRefs> links = GetXRefs(Item);
+    <div class="row">
+        <div class="col" style="display: flex;">
+            <p class="mr-1"> More information: </p>
+            @foreach (var xref in links)
+            {
+                <a href="@xref.Info.Link" target="_blank">@xref.Reference</a>
+                @if (counter < (links.Count - 1))
+                {
+                    <p class="mr-1">,</p>
+                }
+                counter++;
+            }
+        </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public DiffDisease Item { get; set; }
+}

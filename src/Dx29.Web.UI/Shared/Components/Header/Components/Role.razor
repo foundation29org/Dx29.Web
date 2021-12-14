@@ -1,0 +1,19 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@inject LocalizationService Localize
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="m-4" style="border-left: solid 1px" />
+        <div class="topbar-item">
+            <div class="btn btn-icon btn-icon-mobile w-auto btn-clean d-flex align-items-center btn-lg px-2">
+                <span class="text-dark-50 font-weight-bolder font-size-base d-none d-md-inline">@LocalizeRoles(context.User.GetRoles())</span>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code
+{
+    private string LocalizeRoles(IList<string> roles) => String.Join(", ", roles.Select(r => Localize[r]));
+}

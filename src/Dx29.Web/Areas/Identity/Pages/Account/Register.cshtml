@@ -1,0 +1,199 @@
+﻿@page
+@model RegisterModel
+
+@using Dx29.Web
+@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+
+@{
+    ViewData["Title"] = @SharedLocalizer["Register"];
+}
+
+<div class="row">
+    <div class="offset-3 col-6">
+        <h1>@ViewData["Title"]</h1>
+        <h4>@SharedLocalizer["Create a new account."]</h4>
+        <hr />
+        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <input asp-for="Input.OpenData" type="hidden" />
+
+            <div class="form-group">
+                <label asp-for="Input.Email"></label>
+                <input asp-for="Input.Email" autocomplete="nope" class="form-control" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.Password"></label>
+                <div style="display: flex; align-items: center;">
+                    <input asp-for="Input.Password" autocomplete="nope" class="form-control" id="password" />
+                    <button id="button-password" class="btn" type="button">
+                        <i id="icon-password" class="fa fa-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.ConfirmPassword"></label>
+                <div style="display: flex; align-items: center;">
+                    <input asp-for="Input.ConfirmPassword" autocomplete="nope" class="form-control" id="confirmPassword"/>
+                    <button id="button-confirm-password" class="btn" type="button">
+                        <i id="icon-confirm-password" class="fa fa-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <hr />
+
+            <div class="form-group">
+                <label asp-for="Input.FirstName"></label>
+                <input asp-for="Input.FirstName" autocomplete="nope" class="form-control" />
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.LastName"></label>
+                <input asp-for="Input.LastName" autocomplete="nope" class="form-control" />
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+            
+            <hr />
+
+            <div class="form-group">
+                <label asp-for="Input.Role"></label>
+                <select asp-for="Input.Role" class="form-control" id="select_role" onchange="changeRole()">
+                    <option value="Patient">@SharedLocalizer["Patient"]</option>
+                    <option value="Physician">@SharedLocalizer["Physician"]</option>
+                </select>
+            </div>
+
+            <hr />
+            <label id="ImportantNote"> @SharedLocalizer["IMPORTANT NOTE: you must read the PRIVACY POLICY (clicking on the link below) before you can indicate your acceptance."]</label>
+            <div class="form-group">
+                <div style="position: absolute; width: 24px; height: 24px" onclick="OnClickTerms()"></div>
+                @Html.CheckBoxFor(m => Model.Input.Privacy, new { id = "AgreeTerms" })
+                <label asp-for="Input.Privacy" class="control-label"></label>
+                <a onclick="OnClickTerms()" id="AgreeTermsHref" href="#"> @SharedLocalizer["Privacy Policy"]</a>
+                <br />
+                <span asp-validation-for="Input.Privacy" class="text-danger"></span>
+            </div>
+
+            @{
+                string hidden = Model.Input?.Role == "Physician" ? "" : "hidden";
+            }
+
+            <div class="form-group" id="formAgreement" @hidden>
+                <div style="position: absolute; width: 24px; height: 24px" onclick="OnClickAgreement()"></div>
+                @Html.CheckBoxFor(m => Model.Input.DataAgreement, new { id = "AgreeData" })
+                <label asp-for="Input.DataAgreement" class="control-label"></label>
+                <a href="#" onclick="OnClickAgreement()" id="AgreeDataHref"> @SharedLocalizer["Data processing by Dx29"] </a>
+                <br />
+                <span asp-validation-for="Input.DataAgreement" class="text-danger"></span>
+            </div>
+
+            <p>&nbsp;</p>
+            <button type="submit" class="btn btn-primary">@SharedLocalizer["Register"]</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="privacyModal" data-keyboard="false" data-backdrop="static" data-refresh="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>@SharedLocalizer["Privacy Policy"]</h2>
+                <button type="button" class="close" data-dismiss="modal">
+                    ×
+                </button>
+            </div>
+            <div class="modal-body">
+                @Html.Raw(Model.TermsAndConditions)
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary button button4" onclick="TermsChecked()">  @SharedLocalizer["Agree"] </button>
+                <button class="btn btn-danger button button4" onclick="TermsNoChecked()">  @SharedLocalizer["Not Agree"] </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" tabindex="-1" id="agreementModal" data-keyboard="false" data-backdrop="static" data-refresh="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>@SharedLocalizer["Data processing by Dx29"]</h2>
+                <button type="button" class="close" data-dismiss="modal">
+                    ×
+                </button>
+            </div>
+            <div class="modal-body">
+                @Html.Raw(Model.DataAgreement)
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary button button4" onclick="DataAgreementChecked()"> @SharedLocalizer["Agree"] </button>
+                <button class="btn btn-danger button button4" onclick="DataAgreementNoChecked()"> @SharedLocalizer["Not Agree"] </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+        document.getElementById("AgreeTerms").addEventListener('change', (event) => {
+            if (event.currentTarget.checked) {
+                document.getElementById("ImportantNote").setAttribute('hidden', 'hidden');
+            } else {
+                document.getElementById("ImportantNote").removeAttribute('hidden');
+            }
+        })
+
+        function OnClickTerms() {
+            $("#privacyModal").modal('show');
+        }
+
+        function TermsChecked() {
+            $("#privacyModal").modal('hide');
+            document.getElementById("AgreeTerms").removeAttribute('disabled');
+            document.getElementById("AgreeTerms").setAttribute("checked", 'checked');
+            document.getElementById("ImportantNote").setAttribute('hidden', 'hidden');
+        }
+
+        function TermsNoChecked() {
+            $("#privacyModal").modal('hide');
+            document.getElementById("AgreeTerms").removeAttribute('checked');
+        }
+
+        function OnClickAgreement() {
+            $("#agreementModal").modal('show');
+        }
+
+        function DataAgreementChecked() {
+            $("#agreementModal").modal('hide');
+            document.getElementById("AgreeData").removeAttribute('disabled');
+            document.getElementById("AgreeData").setAttribute("checked", 'checked');
+        }
+
+        function DataAgreementNoChecked() {
+            $("#agreementModal").modal('hide');
+            document.getElementById("AgreeData").removeAttribute('checked');
+        }
+
+        function changeRole() {
+            d = document.getElementById("select_role").value;
+            if ((d == "Physician") || (d == "Médico")) {
+                document.getElementById("formAgreement").removeAttribute("hidden");
+            }
+            else {
+                document.getElementById("formAgreement").setAttribute("hidden", "hidden");
+            }
+        }
+
+    </script>
+}

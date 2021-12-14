@@ -1,0 +1,25 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<button class="btn btn-light-primary @CssClass" @onclick="OnClick" @onclick:stopPropagation>
+    @Icon
+    @if (Text != null)
+    {
+        <span>&nbsp;</span>
+        <span>@Text</span>
+    }
+</button>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+
+    [Parameter]
+    public RenderFragment Icon { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

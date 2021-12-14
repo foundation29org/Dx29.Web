@@ -1,0 +1,54 @@
+.container {
+    padding-top: 24px;
+}
+
+.card {
+    border-width: 0px;
+    border-radius: 9px;
+}
+
+    .card .card-header {
+        border-top-left-radius: 9px;
+        border-top-right-radius: 9px;
+        background-color: white;
+        border-bottom: none
+    }
+
+    .card .card-footer {
+        border-bottom-left-radius: 9px;
+        border-bottom-right-radius: 9px;
+        background-color: white;
+        border-bottom: none;
+    }
+
+thead tr {
+    background-color: #f8f8f8;
+}
+
+table.table thead tr th {
+    border: none;
+    border-radius: 5px;
+    color: #aaa;
+}
+
+table.table thead tr th {
+    color: #aaa;
+}
+
+table.table tbody tr td {
+    vertical-align: middle;
+    border: none;
+}
+
+table.table.compact tbody tr td {
+    padding: 4px;
+}
+
+table.table thead tr th:first-child {
+    color: #444;
+}
+
+/*.active {
+    background-color: #eee;
+}
+*/

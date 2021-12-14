@@ -1,0 +1,72 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+
+<DashboardCard CssClassBody="min-h-30px max-h-100px" Name="Diagnosis" Title="@Localize["Disease resources HUB"]" Subtitle="@Localize["Information of the symptoms, clinical researches and patient groups of your diagnosed disease"]" HRef="@HRef" IsLoading="IsLoading">
+    <div class="mx-2">
+        @if (diseaseInfo == null)
+        {
+            <div class="mt-2">
+                <p>@Localize["You have not yet chosen a disease as a diagnosis, search and select it."]</p>
+            </div>
+        }
+        else
+        {
+            <div class="mt-2">
+                <h6 class="text-truncate-1 font-weight-bolder m-0">@diseaseInfo.Name</h6>
+                <div class="text-truncate-2 text-sm-left text-black-50 mt-2">@diseaseInfo.Desc</div>
+            </div>
+        }
+    </div>
+</DashboardCard>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private bool IsLoading = false;
+
+    private TermDesc diseaseInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadDiagnosedAsync();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadDiagnosedAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadDiagnosedAsync()
+    {
+        IsLoading = true;
+        var medicalCase = await dx29.GetMedicalCaseAsync(CaseId);
+        var listDiseasesIds = medicalCase.AsPatientModel().PatientInfo.DiseasesIds;
+        if (listDiseasesIds != null)
+        {
+            if (listDiseasesIds.Count > 0)
+            {
+                string diagnosedSelected = listDiseasesIds.Select(z => z).FirstOrDefault();
+                var listTermsResult = await dx29.SearchDiseasesIdAndMondoAsync(diagnosedSelected);
+                diseaseInfo = listTermsResult.Where(r => r.Id == diagnosedSelected).FirstOrDefault();
+            }
+        }
+        IsLoading = false;
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+
+    private string HRef => $"/Diagnosis2/{CaseId}";
+}

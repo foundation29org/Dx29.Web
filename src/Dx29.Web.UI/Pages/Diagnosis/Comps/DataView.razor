@@ -1,0 +1,59 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@if (Item != null)
+{ 
+    <MasterDetailRight TItem="DiffDisease">
+        <ContentHeader>
+            <h3>@Item.Name</h3>
+            @if ((Item.Desc != null) && (Item.Desc != ""))
+            {
+                <div class="font-size-h5 text-truncate-2 opa-75 mb-4">@Item.Desc</div>
+            }
+            @if (Item.XRefs != null)
+            {
+                @if (Item.XRefs.Count > 0)
+                {
+                    <MoreInfo Item="Item"></MoreInfo>
+                }
+            }
+            <CoursesAndModifiers Item="Item"></CoursesAndModifiers>
+        </ContentHeader>
+        <Content>
+            <Tab>
+                <TabItems>
+                    <TabItem HRef="#dataAnalysis-diffSymptoms" Active="true">
+                        <Caption>Symptoms</Caption>
+                    </TabItem>
+                    <TabItem HRef="#dataAnalysis-diffGenes">
+                        <Caption>Genes</Caption>
+                    </TabItem>
+                </TabItems>
+                <TabItemContents>
+                    <TabItemContent Id="dataAnalysis-diffSymptoms" Active="true">
+                        <Separator />
+                        <DiffTabSymptoms Item="Item" CaseId="@CaseId"></DiffTabSymptoms>
+                    </TabItemContent>
+                    <TabItemContent Id="dataAnalysis-diffGenes">
+                        <Separator />
+                        <DiffTabGenes Item="Item" CaseId="@CaseId" GeneReportId="@GeneReportId"></DiffTabGenes>
+                    </TabItemContent>
+                </TabItemContents>
+            </Tab>
+        </Content>
+    </MasterDetailRight>
+}
+
+@code
+{
+    [Parameter]
+    public DiffDisease Item { get; set; }
+
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public string GeneReportId { get; set; }
+}

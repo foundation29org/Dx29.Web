@@ -1,0 +1,93 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+@if (IsReady)
+{
+    <SummaryHeader Title="@Title" Subtitle="@TotalCount" IsLoading="IsLoading" />
+
+    if (!IsLoading)
+    {
+        <p>@Localize["We have found the following genes and variants in the document."]</p>
+        <Separator H="1" />
+        <DetailsGenotypeView Items="Items" />
+    }
+}
+else if (IsError)
+{
+    <SummaryHeader Title="@Title" CssSubtitle="text-danger" Subtitle="An error occurred while processing the document" />
+
+    <div class="m-4">
+        <div class="alert alert-custom alert-outline-danger fade show mb-5" role="alert">
+            <div class="alert-icon"><i class="flaticon-warning"></i></div>
+            <div class="alert-text">@Report?.ErrorDesc</div>
+        </div>
+    </div>
+}
+else
+{
+    <SummaryHeader Title="@Title" Subtitle="Processing..." />
+
+    <div class="m-4">
+        <div class="alert alert-custom alert-outline-primary fade show mb-5" role="alert">
+            <Spinner CssClass="spinner-ms" />
+            <div class="alert-text ml-12">@Localize["We are processing the document. This may take several minutes, depending on the size of the documt. Please wait..."]</div>
+        </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public ReportModel Report { get; set; }
+
+    private string Title => $"{Localize["Genotype"]} - {Report?.Name}";
+
+    public List<GenotypeInfo> Items = null;
+
+    private bool IsReady => Report.Status.EqualsNoCase("Ready");
+    private bool IsError => Report.Status.EqualsNoCase("Error");
+    private bool IsLoading => Items == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Found {0} genes", Items.Count];
+
+    protected override void OnInitialized()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        base.OnInitialized();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadItemsAsync();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        if (Report != null)
+        {
+            if (Report.Status.EqualsNoCase("Ready"))
+            {
+                Items = await dx29.GetGeneResultsAsync(CaseId, Report.Id);
+            }
+        }
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+}

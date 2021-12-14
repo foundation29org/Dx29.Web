@@ -1,0 +1,33 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="d-flex justify-content-between border-top mt-5 pt-10">
+    <div class="mr-2">
+        <button type="button" style="min-width:140px" class="btn btn-light-primary font-weight-bolder text-uppercase px-9 py-4" data-wizard-type="action-prev" @onclick="OnPrev">@LabelPrevious</button>
+    </div>
+    <div>
+        <button type="button" style="min-width:140px" class="btn btn-primary font-weight-bolder text-uppercase px-9 py-4" data-wizard-type="action-next" @onclick="OnNext">@LabelNext</button>
+    </div>
+    <div>
+        <button type="button" style="min-width:140px" class="btn btn-success font-weight-bolder text-uppercase px-9 py-4" data-wizard-type="action-submit" @onclick="OnFinish">@LabelFinish</button>
+    </div>
+</div>
+
+@code
+{
+    [CascadingParameter]
+    public Wizard ContainerWizard { get; set; }
+
+    [Parameter]
+    public string LabelPrevious { get; set; } = "Previous";
+    [Parameter]
+    public string LabelNext { get; set; } = "Next";
+    [Parameter]
+    public string LabelFinish { get; set; } = "Finish";
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnNext { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnPrev { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnFinish { get; set; }
+}

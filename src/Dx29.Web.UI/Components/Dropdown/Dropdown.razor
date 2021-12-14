@@ -1,0 +1,59 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject IJSRuntime JS
+
+<div class="dropdown">
+    <button class="btn dropdown-toggle @CssClass" type="button" @onclick="Toggle" @onclick:stopPropagation>
+        @Caption
+    </button>
+    <div @ref="DropdownMenu" class="dropdown-menu @CssShow" @onclick:stopPropagation>
+        @ChildContent
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string Caption { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private ElementReference DropdownMenu;
+
+    private string CssShow = "";
+
+    public async void Toggle()
+    {
+        var css = await JS.InvokeAsync<string>("elements.getAttr", DropdownMenu, "class");
+        CssShow = "";
+        StateHasChanged();
+        CssShow = css.Contains("show") ? "" : "show";
+        StateHasChanged();
+    }
+
+    public async void Open()
+    {
+        await OpenAsync();
+    }
+    public async Task OpenAsync()
+    {
+        var css = await JS.InvokeAsync<string>("elements.getAttr", DropdownMenu, "class");
+        CssShow = "show";
+        StateHasChanged();
+    }
+
+    public async void Close()
+    {
+        await CloseAsync();
+    }
+    public async Task CloseAsync()
+    {
+        var css = await JS.InvokeAsync<string>("elements.getAttr", DropdownMenu, "class");
+        CssShow = "";
+        StateHasChanged();
+    }
+}

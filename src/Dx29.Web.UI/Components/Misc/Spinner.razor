@@ -1,0 +1,12 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="spinner spinner-track spinner-primary @CssClass" style="@Style"></div>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string Style { get; set; }
+}

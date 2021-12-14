@@ -1,0 +1,156 @@
+﻿@page "/Timeline/{caseId}"
+@using System.Security.Claims
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+@inject TimelineService TimelineTransform
+
+<Card IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" ConfirmBackNavigationAsync="OnConfirmBackNavigationAsync" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Timeline" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Symptom Chronology"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardToolbar>
+        <ButtonSave Text="@Localize["Save and Exit"]" OnClick="OnSave" />
+    </CardToolbar>
+    <CardBody>
+        @if ((Items != null) && (Items?.Items.Count > 0))
+        {
+            @if (isPatient)
+            {
+                <p class="mb-8">@Localize["Organize your symptoms in a chronology. This is very important so that you and your doctor can have a clear vision of your case. The dates do not need to be exact. If you can't remember the day a symptom started, just write down the first day of the month or an approximate month. If you have comments about a symptom, add a note at "] <i class="icon-md fas fa-ellipsis-v"></i></p>
+            }
+            else
+            {
+                <p class="mb-8">@Localize["Organize the symptoms in a chronology to have a clear vision of this case. The dates do not need to be exact. If you can't remember the day a symptom started, just write down the first day of the month or an approximate month. If you have comments about a symptom, add a note at "] <i class="icon-md fas fa-ellipsis-v"></i></p>
+            }
+            <div class="row">
+                <div class="col-lg-6 col-xxl-6">
+                    <div class="px-8">
+                        <DisclaimerTimelineForm IsNotVisible="@IsValid()" />
+                        <TimeLineForm Items="Items" OnChange="ChangeFormHandler" />
+                    </div>
+                </div>
+                <div class="col-lg-6 col-xxl-6">
+                    <div class="px-8">
+                        <TimeLine Items="Items" />
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <p> @Localize["Please, add symptoms first."] </p>
+        }
+
+    </CardBody>
+</Card>
+
+<DialogConfirm @ref="DialogConfirm" Title="@Localize["Save changes?"]" OnAccept="OnConfirmSaveChanges" OnCancel="OnCancelSaveChanges">
+    <h5>@Localize["You made some changes to the symptom information. Do you want to save changes?"]</h5>
+    <p></p>
+</DialogConfirm>
+
+@code
+{
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; }
+
+    private SymptomTimeline Items = null;
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0}/{1} symptoms.", Items.Items.Where(r => r.StartDate != null).Count(), Items.Items.Count()];
+
+    private bool IsLoading => (Items == null);
+    private bool IsDirty = false;
+
+    private DialogConfirm DialogConfirm;
+
+    private ClaimsPrincipal User = null;
+    private bool isPatient = false;
+
+    private bool? IsValid() => Items?.IsValid();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItemsAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var user = (await AuthenticationState).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            if (user.IsInRole("Patient"))
+            {
+                isPatient = true;
+            }
+            else
+            {
+                isPatient = false;
+            }
+            await base.OnParametersSetAsync();
+        }
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var timeline = await dx29.GetTimelineAsync(CaseId);
+        Items = timeline;
+        StateHasChanged();
+    }
+
+
+    private void ChangeFormHandler(SymptomTimeline items)
+    {
+        Items = items;
+        IsDirty = true;
+        StateHasChanged();
+    }
+
+    private async Task OnSave()
+    {
+        if (IsValid() == true)
+        {
+            //await NotifyChangesAsync();
+            TimelineTransform.UpdateIsCurrentStatus(Items);
+            await dx29.UpsertTimelineAsync(CaseId, Items);
+            IsDirty = false;
+            Navigation.TryGoBack(BackHRef);
+        }
+        else
+        {
+            StateHasChanged();
+        }
+
+    }
+
+    private async Task<bool> OnConfirmBackNavigationAsync()
+    {
+        if (IsDirty)
+        {
+            DialogConfirm.Open();
+            return await Task.FromResult(false);
+        }
+        return await Task.FromResult(true);
+    }
+
+    private async Task OnConfirmSaveChanges()
+    {
+        await OnSave();
+    }
+
+    private void OnCancelSaveChanges()
+    {
+        Navigation.TryGoBack(BackHRef);
+    }
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+
+}

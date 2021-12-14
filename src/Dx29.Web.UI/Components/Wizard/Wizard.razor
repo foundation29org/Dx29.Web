@@ -1,0 +1,52 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="card">
+    <div class="card-body p-0">
+        @if (OnClose.HasDelegate)
+        {
+            <div class="position-absolute" style="top: 16px; right: 16px">
+                <div class="btn btn-icon btn-clean btn-lg" @onclick="OnClose">
+                    <i class="flaticon2-cross"></i>
+                </div>
+            </div>
+        }
+        <div class="wizard wizard-2" data-wizard-state="@GetState()" data-wizard-clickable="false">
+
+            <CascadingValue Value=this>
+                <div class="wizard-nav border-right py-8 px-8 py-lg-20 px-lg-10">
+                    <div class="wizard-steps">
+                        @WizardSteps
+                    </div>
+                </div>
+            </CascadingValue>
+
+            <CascadingValue Value=this>
+                <div class="wizard-body py-8 px-8 py-lg-20 px-lg-10">
+                    <div class="row">
+                        <div class="offset-xxl-1 col-xxl-10">
+                            <form class="form fv-plugins-bootstrap fv-plugins-framework" id="kt_form">
+                                <div class=" min-h-425px">
+                                    @WizardStepContents
+                                </div>
+                                <WizardActons LabelPrevious="@LabelPrevious" LabelNext="@LabelNext" LabelFinish="@LabelFinish" OnNext="Next" OnPrev="Prev" OnFinish="Finish" />
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </CascadingValue>
+
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string LabelPrevious { get; set; } = "Previous";
+
+    [Parameter]
+    public string LabelNext { get; set; } = "Next";
+
+    [Parameter]
+    public string LabelFinish { get; set; } = "Finish";
+}

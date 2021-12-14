@@ -1,0 +1,24 @@
+﻿@page "/"
+
+@attribute [AllowAnonymous]
+
+@inject NavigationManager NavigationManager
+
+@code
+{
+#if DEBUG
+
+    string PAGE_START = "/Welcome";
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.NavigateTo(PAGE_START);
+    }
+
+#else
+    protected override void OnInitialized()
+    {
+        NavigationManager.NavigateTo("/Welcome");
+    }
+#endif
+}

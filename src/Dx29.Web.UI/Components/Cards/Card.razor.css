@@ -1,0 +1,6 @@
+﻿.card-title-hover div {
+    color: #666 !important;
+}
+.card-title-hover div:hover {
+    color: #000 !important;
+}

@@ -1,0 +1,113 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@if ((Items != null) && (Items.Count > 0))
+{
+    <div class="row text-center">
+
+        <div class="col-xl-1 p-4" style="place-self:center;">
+            @if (IndexPaginated > 1)
+            {
+                <a href="#" @onclick="() => HandlePrev()" @onclick:preventDefault><i class="icon-lg flaticon2-left-arrow mr-1"></i></a>
+            }
+        </div>
+
+        <div class="col-xl-10">
+            <ul class="nav nav-pills flex-column flex-sm-row">
+                <Repeater Items="@ItemsPaginated" Context="item">
+                    <!--begin::Item-->
+                    <li class="nav-item d-flex flex-grow-1 flex-shrink-0 col-sm p-2">
+                        <a class="nav-link border rounded d-flex flex-column flex-grow-1 @(item.IsSelected==true ? "active" : "")" href="#" data-toggle="tab" @onclick="()=>ItemSelectedAsync(item)" @onclick:preventDefault>
+                            <span class="nav-text text-center text-truncate-3 font-size-sm">@item.Name</span>
+                        </a>
+                    </li>
+                    <!--end::Item-->
+                </Repeater>
+            </ul>
+        </div>
+
+        <div class="col-xl-1 p-4" style="place-self:center;">
+            @if (IndexPaginated <= Items.Count - MaxItemsShow)
+            {
+                <a href="#" @onclick="() => HandleNext()" @onclick:preventDefault><i class="icon-lg flaticon2-right-arrow mr-1"></i></a>
+            }
+        </div>
+    </div>
+}
+
+
+@code
+{
+
+    [Parameter]
+    public IList<TermDesc> Items { get; set; } = null;
+
+    [Parameter]
+    public int MaxItemsShow { get; set; } = 5;
+
+    [Parameter]
+    public EventCallback<string> ItemSelected { get; set; }
+
+    private IList<TermDesc> ItemsPaginated = null;
+    private int IndexPaginated = 1;
+
+    protected override void OnInitialized()
+    {
+        IndexPaginated = 1;
+        /*if (Items != null)
+        {
+            foreach(var item in Items)
+            {
+                if (item.IsSelected)
+                {
+                    item.IsSelected = false;
+                }
+
+            }
+        }*/
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Items != null)
+        {
+            if (IndexPaginated > 1)
+            {
+                ItemsPaginated = Items.Skip(IndexPaginated - 1).Take(MaxItemsShow).ToList();
+            }
+            else
+            {
+                ItemsPaginated = Items.Take(MaxItemsShow).ToList();
+            }
+        }
+    }
+
+    private async Task ItemSelectedAsync(TermDesc item)
+    {
+        if (item != null)
+        {
+            await ItemSelected.InvokeAsync(item.Name);
+        }
+    }
+
+    private void HandleNext()
+    {
+        if (IndexPaginated <= Items.Count - MaxItemsShow)
+        {
+            IndexPaginated++;
+            ItemsPaginated = Items.Skip(IndexPaginated - 1).Take(MaxItemsShow).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private void HandlePrev()
+    {
+        if (IndexPaginated > 1)
+        {
+            IndexPaginated--;
+            ItemsPaginated = Items.Skip(IndexPaginated - 1).Take(MaxItemsShow).ToList();
+            StateHasChanged();
+        }
+    }
+
+
+}

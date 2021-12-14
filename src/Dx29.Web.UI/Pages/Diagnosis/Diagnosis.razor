@@ -1,0 +1,39 @@
+﻿@page "/Diagnosis/{caseId}"
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<Card IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Diagnosis" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Diseases"]" IsLoading="IsLoading" />
+    </CardHeader>
+    <CardBody>
+        <SummaryDiagnosis CaseId="@CaseId" CaseSummary="CaseSummary" />
+    </CardBody>
+</Card>
+
+@code
+{
+    private MedicalCaseSummary CaseSummary = null;
+
+    private bool IsLoading => CaseSummary == null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CaseId != null)
+        {
+            CaseSummary = await dx29.GetCaseSummaryAsync(CaseId);
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+}

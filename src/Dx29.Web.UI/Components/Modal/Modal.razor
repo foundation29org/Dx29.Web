@@ -1,0 +1,117 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject IJSRuntime JS
+
+<div id="@Id" class="modal fade @CssClass" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered @CssClassModal" role="document">
+        <div class="modal-content">
+            @if (ModalContent != null)
+            {
+                @ModalContent
+                @if (ModalFooter != null)
+                {
+                    @ModalFooter
+                }
+            }
+            else
+            {
+                <div class="modal-body">
+                    @if (ModalHeader != null)
+                    {
+                        <div class="d-flex flex-row align-items-center text-dark-75 mr-6">
+                            @if (ModalIcon != null)
+                            {
+                                <div class="mr-4" style="width: 30px">
+                                    @ModalIcon
+                                </div>
+                            }
+                            <div class="d-flex flex-column">
+                                @ModalHeader
+                            </div>
+                        </div>
+                    }
+                    @if (ModalBody != null)
+                    {
+                        <div class="py-2">
+                            @ModalBody
+                        </div>
+                    }
+                    @if (ModalFooter != null)
+                    {
+                        <div class="pt-4">
+                            @ModalFooter
+                        </div>
+                    }
+                </div>
+            }
+            @if (IsCloseVisible)
+            {
+                <div class="position-absolute" style="top: 8px; right: 8px">
+                    <div class="btn btn-icon btn-clean btn-sm" @onclick="CloseHandler">
+                        <i class="icon-md flaticon2-cross"></i>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string CssClassModal { get; set; }
+
+    [Parameter]
+    public bool IsCloseVisible { get; set; } = true;
+
+    [Parameter]
+    public bool IsCancelEnabled { get; set; } = true;
+
+    [Parameter]
+    public RenderFragment ModalContent { get; set; }
+
+    [Parameter]
+    public RenderFragment ModalIcon { get; set; }
+
+    [Parameter]
+    public RenderFragment ModalHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment ModalBody { get; set; }
+
+    [Parameter]
+    public RenderFragment ModalFooter { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private string Id = null;
+
+    protected override void OnInitialized()
+    {
+        Id = $"id{Guid.NewGuid()}".Replace("-", "");
+    }
+
+    public async void Open() => await OpenAsync();
+    public async Task OpenAsync()
+    {
+        await JS.InvokeVoidAsync("modalJS.open", $"#{Id}", new { keyboard = IsCancelEnabled });
+        await Task.Delay(250);
+    }
+
+    public async void Close() => await CloseAsync();
+    public async Task CloseAsync()
+    {
+        await Task.Delay(250);
+        await JS.InvokeVoidAsync("modalJS.close", $"#{Id}");
+    }
+
+    private async void CloseHandler()
+    {
+        await JS.InvokeVoidAsync("modalJS.close", $"#{Id}");
+        await OnClose.InvokeAsync();
+    }
+}

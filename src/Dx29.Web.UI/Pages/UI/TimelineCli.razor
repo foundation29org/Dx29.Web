@@ -1,0 +1,44 @@
+﻿@page "/UI/TimelineCli"
+
+@inject Dx29Client dx29
+
+<Card>
+    <CardHeader>
+        <h3>Timeline Client</h3>
+    </CardHeader>
+    <CardBody>
+        <div>
+            <button class="btn btn-primary" @onclick="OnClick">Add items</button>
+        </div>
+        <pre>
+            @json
+        </pre>
+    </CardBody>
+</Card>
+
+@code
+{
+    string CaseId = "c21091014421258955814118";
+
+    string json;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var timeline = await dx29.GetTimelineAsync(CaseId);
+        json = timeline.Serialize();
+    }
+
+    private async Task OnClick()
+    {
+        var symptoms = await dx29.GetSymptomsAsync(CaseId);
+        var items = symptoms.Take(3).Select(r => new SymptomTimelineItem { Id = r.Id, StartDate = DateTime.UtcNow });
+        var timeline = new SymptomTimeline() { Items = items.ToArray() };
+        await dx29.UpsertTimelineAsync(CaseId, timeline);
+        await LoadAsync();
+    }
+}

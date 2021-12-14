@@ -1,0 +1,49 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject IJSRuntime JS
+@inject LocalizationService Localize
+
+@if (!IsEmpty)
+{
+    <li class="navi-item">
+        <a href="#" class="navi-link" @onclick="OnClickHandler" @onclick:preventDefault>
+            <span class="navi-icon">
+                @Icon
+            </span>
+            <span class="navi-text">@Caption</span>
+        </a>
+    </li>
+
+}
+else
+{
+    <li class="navi-item">
+        <a class="navi-link" style="color:black !important;">
+            <span class="navi-icon" style="color:black !important;">
+            </span>
+            <span>@Localize["There are no actions available"]</span>
+        </a>
+    </li>
+}
+
+
+@code
+{
+    [Parameter]
+    public RenderFragment Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment Caption { get; set; }
+
+    [Parameter]
+    public bool IsEmpty { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private async void OnClickHandler()
+    {
+        await JS.InvokeVoidAsync("elements.removeClass", ".dropdown-menu.show", "show");
+        await OnClick.InvokeAsync();
+    }
+}

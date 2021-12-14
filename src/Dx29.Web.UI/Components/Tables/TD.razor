@@ -1,0 +1,56 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<td class="@Css" style="@Style">
+    @if (IsDisable)
+    {
+        <div class="opa-75">
+            @ChildContent
+        </div>
+    }
+    else if (String.IsNullOrEmpty(HRef))
+    {
+        if (!OnClick.HasDelegate)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <a href="#" class="text-dark" @onclick="OnClick" @onclick:preventDefault>
+                @ChildContent
+            </a>
+        }
+    }
+    else
+    {
+        <a href="@HRef" class="text-dark">
+            @ChildContent
+        </a>
+    }
+</td>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string Style { get; set; }
+
+    [Parameter]
+    public string Width { get; set; }
+
+    [Parameter]
+    public string HRef { get; set; }
+
+    [Parameter]
+    public bool IsDisable { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private string Css => $"{CssClass} {CssWidth}".Trim();
+    private string CssWidth => String.IsNullOrEmpty(Width) ? "" : $"w-{Width}";
+}

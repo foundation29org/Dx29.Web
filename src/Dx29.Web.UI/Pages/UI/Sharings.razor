@@ -1,0 +1,32 @@
+﻿@page "/UI/Sharing"
+
+<ShareDialog @ref="Dialog" Model="Model" OnAccept="OnAccept" />
+
+<Button CssClass="btn-primary" OnClick="OnShow">
+    Show
+</Button>
+
+<pre>
+    @message
+</pre>
+
+@code
+{
+    public ShareModel Model { get; set; } = new ShareModel();
+
+    private ShareDialog Dialog = null;
+
+    private void OnShow()
+    {
+        Dialog.Open();
+    }
+
+    private async Task OnAccept()
+    {
+        message = Model.Email;
+        await Task.Delay(2500);
+        Dialog.ErrorMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+    }
+
+    string message;
+}

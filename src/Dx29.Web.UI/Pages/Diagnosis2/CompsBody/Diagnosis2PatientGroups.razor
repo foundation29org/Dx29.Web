@@ -1,0 +1,99 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+<div class="row p-4">
+    @if ((PatientGroups?.Count > 0) && (!_loading))
+    {
+        <Repeater Items="@PatientGroups" Context="patientGroup">
+            <div class="col-xl-12">
+                <span class="font-weight-bolder">@Localize["Name"]</span>
+                <br />
+                <span>@patientGroup.Name</span>
+            </div>
+            <div class="col-xl-12 mt-2">
+                <span class="font-weight-bolder">@Localize["Country"]</span>
+                <br />
+                <span>@patientGroup.Country.Name.__text</span>
+            </div>
+            <div class="col-xl-12 mt-2">
+                <span class="font-weight-bolder">@Localize["Language"]</span>
+                <br />
+                <span>@patientGroup.LanguageOfName</span>
+            </div>
+            <div class="col-xl-12 mt-2">
+                <span class="font-weight-bolder">@Localize["Website"]</span>
+                <br />
+                <a href="@patientGroup.Url" target="_blank">@patientGroup.Url</a>
+            </div>
+            <div class="col-xl-12 my-2">
+                <hr />
+            </div>
+        </Repeater>
+    }
+    else if (_loading)
+    {
+        <div class="col-xl-12 my-4">
+            <div class="d-flex flex-column align-items-center w-100">
+                <Spinner CssClass="spinner-xl" />
+            </div>
+        </div>
+    }
+    else if(SelectedDiseaseName!=null)
+    {
+        <div class="col-xl-12">
+            <span>@Localize["Sorry, at this time we do not have patient group data data for {0}. I you can provide information, contact us here", SelectedDiseaseName]</span>
+        </div>
+        <div class="col-xl-12 text-center mt-4">
+            <ButtonIcon Text="@Localize["Contact"]" OnClick="() => OnContactAsync()" CssClass="min-w-160p">
+                <Icon><i class="icon-lg  flaticon-email"></i></Icon>
+            </ButtonIcon>
+        </div>
+    }
+</div>
+
+<DialogSendEmailSupport @ref="DialogSendEmail" Dx29Section="@Localize["Disease resources HUB"]" Subject=@Localize["Patient groups"] Info="@InfoSupport"></DialogSendEmailSupport>
+
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseName { get; set; } = null;
+
+    private PatientGroups PatientGroups = null;
+
+    private bool _loading = false;
+
+    private DialogSendEmailSupport DialogSendEmail;
+    private SupportInfoEmail InfoSupport = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        InfoSupport = null;
+        PatientGroups = await dx29.GetPatientGroupsASync(SelectedDiseaseId);
+        await base.OnParametersSetAsync();
+        _loading = false;
+    }
+
+    private async Task OnContactAsync()
+    {
+        SetInfoSupport();
+        await DialogSendEmail.OpenAsync();
+    }
+    private void SetInfoSupport()
+    {
+        InfoSupport = new SupportInfoEmail();
+        InfoSupport.Add("Selected disease", SelectedDiseaseName);
+        InfoSupport.Add("Selected disease Id", SelectedDiseaseId);
+    }
+
+}

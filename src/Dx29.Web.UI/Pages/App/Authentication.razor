@@ -1,0 +1,35 @@
+﻿@page "/authentication/{action}"
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@attribute [AllowAnonymous]
+
+@inject ILogService Log
+@inject LocalizationService Localize
+@inject NavigationManager NavigationManager
+
+<RemoteAuthenticatorView Action="@Action" OnLogInSucceeded="OnLogInSucceeded" OnLogOutSucceeded="OnLogOutSucceeded">
+    <LoggingIn>Logging in...</LoggingIn>
+    <CompletingLoggingIn>Completing logging in...</CompletingLoggingIn>
+    <LogOut>LogOut</LogOut>
+    <CompletingLogOut>Completing logout...</CompletingLogOut>
+    <LogOutSucceeded>Logout succeeded...</LogOutSucceeded>
+    <UserProfile>User profile...</UserProfile>
+    <Registering>Registering...</Registering>
+</RemoteAuthenticatorView>
+
+@code
+{
+    [Parameter]
+    public string Action { get; set; }
+
+    private void OnLogInSucceeded()
+    {
+    }
+
+    private void OnLogOutSucceeded()
+    {
+        Log.Info("Auth Session END");
+        NavigationManager.NavigateTo("/");
+    }
+}

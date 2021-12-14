@@ -1,0 +1,89 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+@inject Dx29Client dx29
+
+<h3>@Localize["Summary"]</h3>
+<h4 class="mb-6 text-black-50">@Localize["Review and commit"]</h4>
+
+<div class="font-size-h6 font-italic">@Localize["You are about to create a new patient with the following data:"]</div>
+
+<div class="form-group row my-2">
+
+    <label class="col-3 col-form-label">@Localize["Name"]</label>
+    <div class="col-9">
+        <span class="form-control-plaintext font-weight-bolder">@Model.Name</span>
+    </div>
+
+    <label class="col-3 col-form-label">@Localize["Birth Date"]</label>
+    <div class="col-9">
+        <span class="form-control-plaintext font-weight-bolder">@GetBirthDate()</span>
+        <span class="text-black-50">&nbsp;</span>
+    </div>
+
+    <label class="col-3 col-form-label">@Localize["Gender"]</label>
+    <div class="col-9">
+        <span class="form-control-plaintext font-weight-bolder">@GetGender()</span>
+    </div>
+
+    @if ((diagnosedSelected != null) && (diseaseName != null))
+    {
+        <label class="col-3 col-form-label">@Localize["Diagnosed disease"]</label>
+        <div class="col-9">
+            <span class="form-control-plaintext font-weight-bolder">@diseaseName</span>
+            <span class="text-black-50">&nbsp;</span>
+        </div>
+    }
+
+    <label class="col-3 col-form-label">@Localize["Medical Files"]</label>
+    <div class="col-9 pt-3">
+        @foreach (var item in Files)
+        {
+            <div class="form-control-plaintext font-weight-bolder p-0 m-0 text-truncate-1">@item.Name</div>
+        }
+    </div>
+
+    <label class="col-3 col-form-label">@Localize["Symptoms"]</label>
+    <div class="col-9 pt-3">
+        @foreach (var item in Items)
+        {
+            <div class="form-control-plaintext font-weight-bolder p-0 m-0 text-truncate-1">@item.Name</div>
+        }
+    </div>
+
+
+</div>
+
+@code
+{
+    [Parameter]
+    public PatientInfoModel Model { get; set; }
+
+    [Parameter]
+    public IList<FileItem> Files { get; set; }
+
+    [Parameter]
+    public IList<TermDesc> Items { get; set; }
+
+    private string diagnosedSelected => ((Model.DiseasesIds?.Count > 0) && (Model.DiseasesIds?.Select(z => z).FirstOrDefault().Length > 0)) ? Model.DiseasesIds.Select(z => z).FirstOrDefault() : null;
+    private string diseaseName = null;
+
+    public async Task Refresh()
+    {
+        await LoadDiseaseNameAsync();
+        StateHasChanged();
+    }
+
+    public async Task LoadDiseaseNameAsync()
+    {
+        if (diagnosedSelected != null)
+        {
+            var result = await dx29.SearchDiseasesAsync(diagnosedSelected);
+            diseaseName = result.Where(r => r.Id == diagnosedSelected).FirstOrDefault()?.Name;
+        }
+
+    }
+
+    private string GetBirthDate() => Model.BirthDate == null ? Localize["Undefined"] : $"{Localize.ToShortDateString(Model.BirthDate)} ({Localize.AsAge(Model.BirthDate)})";
+    private string GetGender() => Model.Gender == null ? Localize["Undefined"] : Localize[Model.Gender];
+}

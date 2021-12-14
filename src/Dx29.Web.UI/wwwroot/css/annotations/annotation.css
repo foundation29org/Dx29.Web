@@ -1,0 +1,43 @@
+﻿.annotation {
+    min-width: 240px;
+}
+
+    .annotation div {
+        margin: 4px 0px;
+        padding: 0px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .annotation .head {
+        font-weight: 600;
+        text-transform: uppercase;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        margin: -4px -8px -4px -8px;
+        padding: 4px 8px 4px 8px;
+    }
+
+    .annotation .desc {
+        margin-top: 4px;
+        min-height: 48px;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        border-top: solid 0px #444;
+    }
+
+    .annotation .foot {
+        margin-top: 0px;
+        padding-top: 6px;
+        height: 24px;
+        white-space: nowrap;
+        border-top: solid 0px #888;
+    }
+
+    .annotation hr {
+        margin: 0px;
+        padding: 0px;
+        height: 4px;
+    }

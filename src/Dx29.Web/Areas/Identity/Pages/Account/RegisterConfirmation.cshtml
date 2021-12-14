@@ -1,0 +1,20 @@
+﻿@page
+@model RegisterConfirmationModel
+
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Dx29.Web
+@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+
+@{
+    ViewData["Title"] = @SharedLocalizer["Register confirmation"];
+}
+
+<div class="row">
+    <div class="offset-3 col-6">
+        <section>
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+            <p> @SharedLocalizer["Please activate your account by clicking on the link that has been emailed to you."] </p>
+        </section>
+    </div>
+</div>

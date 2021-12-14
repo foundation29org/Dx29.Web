@@ -1,0 +1,34 @@
+﻿@page "/UI/Icons"
+
+@inherits ComponentEx
+
+@foreach (var item in Items)
+{
+    <Card>
+        <CardIcon>
+            <KnownIcon Name="@item" Type="Header" />
+        </CardIcon>
+        <CardHeader>
+            <CardTitle Title="@Localize[item]" Subtitle="@Localize["Total {0} items", 123]" />
+        </CardHeader>
+    </Card>
+
+    <Separator />
+}
+
+@code
+{
+    private IEnumerable<string> Items => GetItems();
+
+    private IEnumerable<string> GetItems()
+    {
+        yield return "Patients";
+
+        yield return "Symptoms";
+        yield return "Diagnosis";
+
+        yield return "Notes";
+        yield return "Reports";
+        yield return "Genotype";
+    }
+}

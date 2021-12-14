@@ -1,0 +1,41 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@typeparam TItem
+
+@if (Navigator != null)
+{
+    if (Last != null)
+    {
+        <div class="btn btn-icon btn-icon-dark-50 btn-hover-bg-secondary mr-4 opa-50" @onclick="OnBackHandler">
+            <i class="icon-xl flaticon2-left-arrow-1"></i>
+        </div>
+    }
+}
+
+@code
+{
+    [Parameter]
+    public EventCallback<TItem> OnBack { get; set; }
+
+    private BackNavigation<TItem> Navigator { get; set; }
+
+    private TItem Current => Navigator.Current;
+
+    private TItem Last => Navigator.Last;
+
+    public void Initialize()
+    {
+        Navigator = new BackNavigation<TItem>();
+    }
+
+    public void Next(TItem item)
+    {
+        Navigator.Next(item);
+    }
+
+    private async void OnBackHandler()
+    {
+        Navigator.Back();
+        await OnBack.InvokeAsync(Current);
+    }
+}

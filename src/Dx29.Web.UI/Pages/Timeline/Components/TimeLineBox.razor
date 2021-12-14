@@ -1,0 +1,27 @@
+﻿@namespace Dx29.Data
+@inject TimelineService TimelineTransform
+
+<div class="timeline-content">
+    <h6>@Box.Subheader</h6>
+    @foreach (var item in Box.Items)
+    {
+        <a class="text-primary" style="cursor:pointer !important;" @onclick="()=>OpenSymptomDialog(item)">@item.Name</a>
+        <br/>
+    }
+</div>
+
+<SymptomTimelineDialog @ref="SymptomTimelineDialog"/>
+
+@code
+{
+    [Parameter]
+    public TimelineInfoBox Box { get; set; }
+
+    private SymptomTimelineDialog SymptomTimelineDialog;
+
+    private void OpenSymptomDialog(SymptomTimelineItem item)
+    {
+        SymptomTimelineDialog.Open(item);
+    }
+
+}

@@ -1,0 +1,293 @@
+﻿@page "/Sharing/{caseId}"
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+
+<Card CssClassBody="min-h-100px" IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Share" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        @if (MedicalCase?.CanBeShared() == true)
+        {
+            <CardTitle IsLoading="IsLoading" Title="@Localize["Share"]" Subtitle="@TotalCount" />
+        }
+        else
+        {
+            <CardTitle IsLoading="IsLoading" Title="@Localize["Share"]" />
+        }
+    </CardHeader>
+    <CardToolbar>
+        @if (MedicalCase.CanBeShared())
+        {
+            <ButtonAdd Text="@Localize["Share Case"]" OnClick="()=>OnRequestAddSharing()" />
+        }
+    </CardToolbar>
+    <CardBody>
+        @if (!MedicalCase.CanBeShared())
+        {
+            <p>@Localize["This is a shared case and cannot be shared to a third party."]</p>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-xl-12">
+                    <p class="text-black-50">@Localize["All users to whom you share your case will be able to see your changes."]</p>
+                </div>
+                <div class="col-xl-12 mt-2">
+                    <DataTable IsEmpty="IsEmpty">
+                        <DataTableEmpty>
+                            <p>@Localize["You are not sharing this case."]</p>
+                        </DataTableEmpty>
+                        <DataTableHeader>
+                            <THR>
+                                <th></th>
+                                <th>@Localize["Email"]</th>
+                                <th style="width: 30%">@Localize["Status"]</th>
+                                <th>@Localize["Last Update"]</th>
+                                <th class="w-168px"></th>
+                                <th class="w-168px"></th>
+                            </THR>
+                        </DataTableHeader>
+                        <DataTableBody>
+                            <Repeater Items="MedicalCase.SharedWith" Context="item">
+                                <TRClick>
+                                    <TDIcon>
+                                        <i class="icon-lg fas fa-share-alt text-success"></i>
+                                    </TDIcon>
+                                    <TDText Text="@item.UserId" CssText="font-weight-bolder" />
+                                    <TDText Text="@item.Status" />
+                                    <TDTextLabel Text="@Localize.AsShortDateTime(item.LastUpdate)" Label="@Localize.AsElapsedTime(item.LastUpdate)" />
+                                    @if (item.IsShared())
+                                    {
+                                        <TD CssClass="w-160px" />
+                                        if (MedicalCase.IsCaseOwner())
+                                        {
+                                            <TDButton CssClass="btn-light-danger w-160px" Text="@Localize["Revoke Sharing"]" OnClick="() => OnRequestRevokeSharing(item)">
+                                                <i class="icon-nm flaticon2-cross"></i>
+                                            </TDButton>
+                                        }
+                                        else
+                                        {
+                                            <TDButton CssClass="btn-light-danger w-160px" Text="@Localize["Stop Sharing"]" OnClick="() => OnRequestDeleteSharing(item)">
+                                                <i class="icon-nm flaticon2-cross"></i>
+                                            </TDButton>
+                                        }
+                                    }
+                                    else if (item.IsPending())
+                                    {
+                                        if (MedicalCase.IsCaseOwner())
+                                        {
+                                            <TDButton CssClass="btn-light-success w-160px" Text="@Localize["Accept Sharing"]" OnClick="() => OnRequestAcceptSharing(item)">
+                                                <i class="icon-nm flaticon2-check-mark"></i>
+                                            </TDButton>
+                                            <TDButton CssClass="btn-light-danger w-160px" Text="@Localize["Revoke Sharing"]" OnClick="() => OnRequestRevokeSharing(item)">
+                                                <i class="icon-nm flaticon2-cross"></i>
+                                            </TDButton>
+                                        }
+                                        else
+                                        {
+                                            <TD CssClass="w-160px" />
+                                            <TDButton CssClass="btn-light-danger w-160px" Text="@Localize["Cancel Sharing"]" OnClick="() => OnRequestDeleteSharing(item)">
+                                                <i class="icon-nm flaticon2-cross"></i>
+                                            </TDButton>
+                                        }
+                                    }
+                                    else if (item.IsRevoked())
+                                    {
+                                        if (MedicalCase.IsCaseOwner())
+                                        {
+                                            <TDButton CssClass="btn-light-success w-160px" Text="@Localize["Accept Sharing"]" OnClick="() => OnRequestAcceptSharing(item)">
+                                                <i class="icon-nm flaticon2-check-mark"></i>
+                                            </TDButton>
+                                            <TDButton CssClass="btn-light-danger w-160px" Text="@Localize["Remove Sharing"]" OnClick="() => OnRequestDeleteFromOwnerSharing(item)">
+                                                <i class="icon-nm flaticon2-cross"></i>
+                                            </TDButton>
+                                        }
+                                        else
+                                        {
+                                            <TD CssClass="w-160px" />
+                                            <TDButton CssClass="btn-light-danger w-160px" Text="@Localize["Remove Sharing"]" OnClick="() => OnRequestDeleteSharing(item)">
+                                                <i class="icon-nm flaticon2-cross"></i>
+                                            </TDButton>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <TD CssClass="w-160px" />
+                                        <TD CssClass="w-160px" />
+                                    }
+                                </TRClick>
+                            </Repeater>
+                        </DataTableBody>
+                    </DataTable>
+                </div>
+            </div>
+
+        }
+    </CardBody>
+</Card>
+
+<SyncDialogConfirm @ref="DeleteFromOwnerDialogConfirm" Title="@Localize["Confirm Stop Sharing"]" OnAccept="()=>OnDeleteSharingAsync()">
+    <h5>@Localize["Are you sure you want to stop sharing with '{0}'?", ShareModel?.Email]</h5>
+    <p></p>
+</SyncDialogConfirm>
+
+<ShareDialogActions @ref="ShareDialogActions" Model="ShareModel" IsSharedCase="isSharedCase" OnAccept="OnShareActionAccept" />
+
+<DialogOk @ref="DialogPending" Title="@Localize["Request sharing to owner."]" Icon="flaticon2-information text-primary">
+    <p>@Localize["We have sent an email to the owner of the case with your application information. The status of the application will remain pending until the owner performs an operation on it."] </p>
+</DialogOk>
+
+@code
+{
+    private SyncDialogConfirm DeleteFromOwnerDialogConfirm;
+    private ShareDialogActions ShareDialogActions;
+    private string _action = null;
+
+    private DialogOk DialogPending;
+
+
+    private PatientModel MedicalCase = null;
+
+    private bool IsLoading => MedicalCase == null;
+
+    private int ShareCount => MedicalCase?.SharedWith?.Count ?? 0;
+
+    private bool IsEmpty => ShareCount == 0;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Shared with {0} users", ShareCount];
+
+    private ShareModel ShareModel = new ShareModel();
+
+    private bool? isSharedCase => MedicalCase?.IsShared();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CaseId != null)
+        {
+            await LoadItemsAsync();
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        MedicalCase = await dx29.GetPatientAsync(CaseId);
+    }
+
+    private void OnRequestAddSharing()
+    {
+        if (MedicalCase != null)
+        {
+            _action = "Share";
+            ShareDialogActions.Open(_action);
+        }
+    }
+
+    private void OnRequestAcceptSharing(SharedWith sharedWith)
+    {
+        ShareModel.Email = sharedWith.UserId;
+        if (MedicalCase != null)
+        {
+            _action = "Accept";
+            ShareDialogActions.Open(_action);
+        }
+    }
+
+    private void OnRequestRevokeSharing(SharedWith sharedWith)
+    {
+        ShareModel.Email = sharedWith.UserId;
+        if (MedicalCase != null)
+        {
+            _action = "Revoke";
+            ShareDialogActions.Open(_action);
+        };
+    }
+
+    private void OnRequestDeleteSharing(SharedWith sharedWith)
+    {
+        ShareModel.Email = sharedWith.UserId;
+        if (MedicalCase != null)
+        {
+            _action = "Delete";
+            ShareDialogActions.Open(_action);
+        }
+    }
+
+    private async Task OnRequestDeleteFromOwnerSharing(SharedWith sharedWith)
+    {
+        ShareModel.Email = sharedWith.UserId;
+        ShareModel.Message = null;
+        await DeleteFromOwnerDialogConfirm.OpenAsync();
+    }
+
+
+    private async Task OnShareActionAccept()
+    {
+        if (_action.ToLower() == "share")
+        {
+            await OnAddShareAccept();
+        }
+        else if (_action.ToLower() == "accept")
+        {
+            await OnAcceptSharingAsync();
+        }
+        else if (_action.ToLower() == "revoke")
+        {
+            await OnRevokeAsync();
+        }
+        else if (_action.ToLower() == "delete")
+        {
+            await OnDeleteSharingAsync();
+        }
+    }
+
+
+    private async Task OnAddShareAccept()
+    {
+        try
+        {
+            await dx29.ShareMedicalCaseAsync(MedicalCase.Id, ShareModel.Email, ShareModel.Message);
+            await LoadItemsAsync();
+            if ((isSharedCase == true) && (_action.ToLower() == "share"))
+            {
+                await DialogPending.OpenAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShareDialogActions.ErrorMessage = Localize[ex.Message];
+        }
+    }
+
+    private async Task OnAcceptSharingAsync()
+    {
+        await dx29.AcceptSharingMedicalCaseAsync(CaseId, ShareModel.Email, ShareModel.Message);
+        await LoadItemsAsync();
+        await AppState.RefreshCurrentCaseAsync();
+        StateHasChanged();
+    }
+
+    private async Task OnRevokeAsync()
+    {
+        await dx29.RevokeSharingMedicalCaseAsync(CaseId, ShareModel.Email, ShareModel.Message);
+        await LoadItemsAsync();
+        await AppState.RefreshCurrentCaseAsync();
+        StateHasChanged();
+    }
+
+    private async Task OnDeleteSharingAsync()
+    {
+        await dx29.DeleteSharingMedicalCaseAsync(CaseId, ShareModel.Email, ShareModel.Message);
+        await LoadItemsAsync();
+        await AppState.RefreshCurrentCaseAsync();
+        StateHasChanged();
+    }
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+}

@@ -1,0 +1,60 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@using System.Threading 
+
+@inject LocalizationService Localize
+
+<Modal @ref="Dialog" OnClose="OnCancelHandlerAsync">
+    <ModalIcon>
+        <i class="icon-2x flaticon2-warning text-danger"></i>
+    </ModalIcon>
+    <ModalHeader>
+        <ModalTitle Title="@Title" />
+    </ModalHeader>
+    <ModalBody>
+        @ChildContent
+    </ModalBody>
+    <ModalFooter>
+        <ModalAcceptCancel Accept="@Localize["Ok"]" Cancel="@Localize["Cancel"]" OnAccept="OnAcceptHandlerAsync" OnCancel="OnCancelHandlerAsync" />
+    </ModalFooter>
+</Modal>
+
+@code
+{
+    private Modal Dialog;
+
+    private SemaphoreSlim Signal = new SemaphoreSlim(0, 1);
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnAccept { get; set; }
+
+    private bool Result = false;
+
+    public async Task<bool> OpenAsync()
+    {
+        await Dialog.OpenAsync();
+        await Signal.WaitAsync();
+        return Result;
+    }
+
+    private async Task OnAcceptHandlerAsync()
+    {
+        Result = true;
+        await Dialog.CloseAsync();
+        await OnAccept.InvokeAsync(Result);
+        Signal.Release();
+    }
+
+    private async Task OnCancelHandlerAsync()
+    {
+        Result = false;
+        await Dialog.CloseAsync();
+        Signal.Release();
+    }
+}

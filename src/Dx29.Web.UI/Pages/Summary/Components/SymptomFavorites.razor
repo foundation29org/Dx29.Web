@@ -1,0 +1,221 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+@if (IsLoading)
+{
+    <p>@Localize["Loading..."]</p>
+}
+else
+{
+    if (KeyItems.Count == 0)
+    {
+        <div class="mt-6 mb-2 font-weight-bolder text-danger">@Localize["No symptoms selected. Please, add or select new symptoms."]</div>
+    }
+    else
+    {
+        <div class="border border-0 mt-2 pl-4 pt-2">
+            <DataTable CssClass="compact">
+                <DataTableBody>
+                    <Repeater Items="SortedItems" Context="item">
+                        <tr>
+                            <TDFavorite IsSelected="@item.IsKeySymptom" OnChanged="(s) => OnItemChanged(item, s)" />
+                            @if (!item.IsRemoved)
+                            {
+                                <TDTextLabel CssClass="bg-hover-light" Text="@item.Name" Label="@GetSymptomDesc(item)" OnClick="() => OnSymptomClick(item)" />
+                            }
+                            else
+                            {
+                                <TDTextLabel CssClass="bg-hover-light" Text="@item.Name" CssText="text-danger" Label="@GetSymptomDesc(item)" Csslabel="text-danger" OnClick="() => OnSymptomClick(item)" />
+                            }
+
+                            @if (item.HasDocument)
+                            {
+                                <TDButtonIcon CssClass="btn-bg-white btn-hover-bg-light w-40px" OnClick="() => OnDocumentItem(item)">
+                                    <i class="icon-md flaticon2-crisp-icons text-primary"></i>
+                                </TDButtonIcon>
+                            }
+                            else
+                            {
+                                <TD CssClass="w-40px"></TD>
+                            }
+                            @if (ShowContextMenu)
+                            {
+                                if (item.HasDocument)
+                                {
+                                    <TD CssClass="w-40px">
+                                        <DropMenu>
+                                            <DropMenuItem OnClick="() => OnDocumentItem(item)">
+                                                <Icon><i class="icon-md flaticon2-crisp-icons text-primary"></i></Icon>
+                                                <Caption>@Localize["View in document"]</Caption>
+                                            </DropMenuItem>
+                                            <li class="navi-separator my-2"></li>
+                                            <DropMenuItem OnClick="() => OnRemoveItem(item)">
+                                                <Icon><i class="icon-nm flaticon2-cross text-danger"></i></Icon>
+                                                <Caption>@Localize["Remove"]</Caption>
+                                            </DropMenuItem>
+                                        </DropMenu>
+                                    </TD>
+                                }
+                                else
+                                {
+                                    <TD CssClass="w-40px">
+                                        <DropMenu>
+                                            <DropMenuItem OnClick="() => OnRemoveItem(item)">
+                                                <Icon><i class="icon-nm flaticon2-cross text-danger"></i></Icon>
+                                                <Caption>@Localize["Remove"]</Caption>
+                                            </DropMenuItem>
+                                        </DropMenu>
+                                    </TD>
+                                }
+                            }
+                        </tr>
+                    </Repeater>
+                </DataTableBody>
+            </DataTable>
+        </div>
+    }
+}
+
+<HPONavigatorDialog @ref="HPONavigatorDialog" OnAccept="OnHPOAccept" />
+
+<AnnotationsDialog @ref="AnnotationsDialog" CaseId="@CaseId" />
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Saving changes, please wait..."]" />
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public IList<SymptomDesc> Items { get; set; }
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private IList<SymptomDesc> KeyItems => Items.Where(r => r.Status.EqualsNoCase("Selected") || r.Status.EqualsNoCase("Preselected"))
+            .OrderBy(r => r.Name)
+            .OrderBy(r => r.IsKeySymptom ? 0 : 1)
+            .ToArray();
+
+    [Parameter]
+    public bool IncludeRemoved { get; set; }
+
+    [Parameter]
+    public bool ShowContextMenu { get; set; }
+
+    private bool IsLoading => Items == null;
+
+    private IList<SymptomDesc> SortedItems = null;
+
+    private HPONavigatorDialog HPONavigatorDialog;
+    private AnnotationsDialog AnnotationsDialog;
+    private DialogBusy DialogBusy;
+
+    protected override void OnParametersSet()
+    {
+        if (Items != null)
+        {
+            ArrangeItems();
+        }
+    }
+
+    private async Task OnSymptomClick(SymptomDesc model)
+    {
+        var selectedItems = Items.Where(r => r.IsSelected).Select(r => r.Id.ToUpper()).ToList();
+
+        var terms = await dx29.GetHpoTermsAsync(model.Id);
+        if (terms != null)
+        {
+            var term = terms.Values?.FirstOrDefault()?.FirstOrDefault();
+            HPONavigatorDialog.HPONavigator.Initialize(term, selectedItems);
+            await HPONavigatorDialog.OpenAsync();
+        }
+    }
+
+    private void OnHPOAccept()
+    {
+        foreach (var term in HPONavigatorDialog.HPONavigator.AddedItems.Values)
+        {
+            var model = TryGetSymptom(term.Id);
+            if (model != null)
+            {
+                model.IsSelected = true;
+            }
+            else
+            {
+                model = new SymptomDesc()
+                {
+                    Id = term.Id,
+                    Name = term.Name,
+                    Desc = term.Desc
+                };
+                model.IsSelected = true;
+                model.LastUpdate = DateTimeOffset.UtcNow;
+                //model.Sources.Add("Manual");
+                Items.Insert(0, model);
+                SortedItems.Insert(0, model);
+            }
+            OnChanged.InvokeAsync();
+        }
+        foreach (var item in HPONavigatorDialog.HPONavigator.RemovedItems.Values)
+        {
+            DeselectItem(Items, item.Id);
+            DeselectItem(SortedItems, item.Id);
+        }
+        ArrangeItems();
+    }
+
+    public void DeselectItem(IList<SymptomDesc> items, string id)
+    {
+        var term = items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        if (term != null)
+        {
+            term.IsSelected = false;
+            OnChanged.InvokeAsync();
+        }
+    }
+
+    private SymptomDesc TryGetSymptom(string id)
+    {
+        return Items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    }
+
+    private void OnItemChanged(SymptomDesc model, bool selected)
+    {
+        model.IsKeySymptom = selected;
+        OnChanged.InvokeAsync();
+    }
+
+    private async void OnDocumentItem(SymptomDesc model)
+    {
+        await AnnotationsDialog.OpenAsync(model);
+    }
+
+    private void OnRemoveItem(SymptomDesc model)
+    {
+        model.IsSelected = false;
+        ArrangeItems();
+        OnChanged.InvokeAsync();
+    }
+
+    private void ArrangeItems()
+    {
+        IEnumerable<SymptomDesc> items = KeyItems;
+        if (!IncludeRemoved)
+        {
+            items = items.Where(r => !r.IsRemoved);
+        }
+        items = items.OrderBy(r => r.Name).OrderBy(r => !r.IsKeySymptom).OrderBy(r => r.IsRemoved).ToList();
+        SortedItems = items.ToList();
+        StateHasChanged();
+    }
+
+    private string GetSymptomDesc(SymptomDesc item)
+    {
+        return String.IsNullOrEmpty(item.Desc) ? Localize["(No description)"] : item.Desc;
+    }
+}

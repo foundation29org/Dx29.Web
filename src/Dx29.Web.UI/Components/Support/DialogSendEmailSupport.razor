@@ -1,0 +1,171 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject LocalizationService Localize
+@inject Dx29Client dx29
+
+@if (Model != null)
+{
+    <Modal @ref="Dialog">
+        <ModalIcon>
+            <i class="icon-2x flaticon-email text-primary"></i>
+        </ModalIcon>
+        <ModalHeader>
+            <ModalTitle Title=@Localize["Contact"] />
+        </ModalHeader>
+        <ModalBody>
+            <EditForm EditContext="@editContext">
+                <DataAnnotationsValidator />
+                <div class="row">
+                    @if (OnErrorSendSupport == true)
+                    {
+                        <div class="col-xl-12">
+                            <div class="alert alert-custom alert-outline-danger fade show mb-5" role="alert">
+                                <div class="alert-icon"><i class="flaticon-warning"></i></div>
+                                <div class="alert-text">@Localize["We were unable to send your request, please try again in a few minutes."]</div>
+                            </div>
+                        </div>
+                    }
+                    <div class="col-xl-12">
+                        <div class="form-group">
+                            <label>@Localize["Message"] </label>
+                            <textarea class="form-control form-control-solid form-control-lg" rows="4" placeholder=@Localize["Message"] @bind="Model.Message"></textarea>
+                            <div class="mt-2 text-danger">
+                                <ValidationMessage For="() => Model.Message" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-12">
+                        <div class="form-group">
+                            <label>@Localize["Contact email address"] *</label>
+                            <InputText Class="form-control form-control-solid form-control-lg" name="Name" placeholder=@Localize["Email"] autocomplete="off" @bind-Value="Model.EmailContact" />
+                            <div class="mt-2 text-danger">
+                                <ValidationMessage For="() => Model.EmailContact" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-12">
+                        <div class="form-group">
+                            <hr />
+                            <p class="text-black-50">@Localize["Fields marked with an asterisk (*) are mandatory."]</p>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </ModalBody>
+        <ModalFooter>
+            @if (editContext.Validate())
+            {
+                <ModalAccept Accept="@Localize["Send"]" OnAccept="OnSendHandler" />
+            }
+            else
+            {
+                <div class="text-right">
+                    <button type="button" class="btn btn-primary min-w-100px mr-4" @onclick="OnSendHandler">@Localize["Send"]</button>
+                </div>
+            }
+        </ModalFooter>
+    </Modal>
+}
+
+<DialogOk @ref="DialogOK" Title="@Localize["Email sent successfully"]" Icon="flaticon2-send text-primary">
+    <div class="row">
+        <div class="col-xl-12">
+            <p>@Localize["Your request has been sent to the support team. We will contact you shortly."] </p>
+        </div>
+        <div class="col-xl-12">
+            <p>@Localize["We have emailed you the information about your request."] </p>
+        </div>
+    </div>
+</DialogOk>
+
+@code
+{
+    private Modal Dialog;
+    private DialogOk DialogOK;
+
+    [Parameter]
+    public string Dx29Section { get; set; }
+
+    [Parameter]
+    public string Subject { get; set; }
+
+    [Parameter]
+    public SupportInfoEmail Info { get; set; }
+
+    private EditContext editContext;
+    private EmailModel Model = null;
+    private string Language => dx29.Language;
+
+    private bool OnErrorSendSupport = false;
+
+    protected override void OnInitialized()
+    {
+        LoadForm();
+    }
+
+    private void LoadForm()
+    {
+        Model = null;
+        Model = new EmailModel
+        {
+            Message = null,
+            EmailContact = null
+
+        };
+        editContext = new EditContext(Model);
+        OnErrorSendSupport = false;
+        StateHasChanged();
+    }
+
+    public void Open() {
+        LoadForm();
+        Dialog.Open();
+    }
+
+    public async Task OpenAsync() {
+        LoadForm();
+        await Dialog.OpenAsync();
+    }
+
+    public void Close() => Dialog.Close();
+    public async Task CloseAsync() => await Dialog.CloseAsync();
+
+    private async void OnSendHandler()
+    {
+        bool isValid = editContext.Validate();
+        if (isValid)
+        {
+            string bodyEmail = BuildBodySupportEmail();
+            var response = await dx29.SendEmailSupportAsync("[Dx29 V2] - " +Subject, bodyEmail);
+            if ((response.status != 202)&&(response.status != 200))
+            {
+                OnErrorSendSupport = true;
+                StateHasChanged();
+                await Dialog.OpenAsync();
+            }
+            else
+            {
+                string bodyEmailUser = BuildBodyUserEmail();
+                string subjectUser = Localize["Request information"];
+                var response2 = await dx29.SendEmailAsync("[Dx29] "+ subjectUser, bodyEmailUser, Model.EmailContact);
+                if ((response2.status != 202)&&(response2.status != 200))
+                {
+                    OnErrorSendSupport = true;
+                    StateHasChanged();
+                    await Dialog.OpenAsync();
+                }
+                else
+                {
+                    await Dialog.CloseAsync();
+                    OnErrorSendSupport = false;
+                    await DialogOK.OpenAsync();
+                }
+            }
+        }
+        else
+        {
+            await Dialog.OpenAsync();
+        }
+    }
+
+}

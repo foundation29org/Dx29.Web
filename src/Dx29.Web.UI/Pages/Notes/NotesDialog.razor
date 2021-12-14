@@ -1,0 +1,83 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject Dx29Client dx29
+@inject LocalizationService Localize
+
+<Modal @ref="Dialog" CssClassModal="modal-lg">
+    <ModalIcon>
+        <KnownIcon Name="Notes" Type="Header" />
+    </ModalIcon>
+    <ModalHeader>
+        <ModalTitle Title="@Title" />
+    </ModalHeader>
+    <ModalBody>
+        <form class="form">
+            <div class="form-group">
+                <label>@Localize["Write here the text of your note"]</label>
+                <textarea class="form-control form-control-solid" rows="8" @bind="Content"></textarea>
+            </div>
+        </form>
+    </ModalBody>
+    <ModalFooter>
+        <ModalAcceptCancel Accept="@Localize["Save"]" Cancel="@Localize["Cancel"]" OnAccept="AcceptHandler" OnCancel="OnCancel" />
+    </ModalFooter>
+</Modal>
+
+@code
+{
+    private Modal Dialog;
+
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public EventCallback OnAccept { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    public NoteModel Current { get; set; }
+
+    public string Content { get; set; }
+
+    private string Title { get; set; }
+
+    public void OpenNew()
+    {
+        Title = Localize["Add New Note"];
+        Current = null;
+        Content = "";
+        StateHasChanged();
+        Dialog.Open();
+    }
+
+    public async Task OpenEditAsync(string id)
+    {
+        var model = await dx29.GetNoteByIdAsync(CaseId, id);
+
+        Title = Localize["Edit Note"];
+        Current = model;
+        Content = model.Content;
+        StateHasChanged();
+        Dialog.Open();
+    }
+
+    private async void AcceptHandler()
+    {
+        Dialog.Close();
+
+        var model = Current;
+        if (model == null)
+        {
+            model = new NoteModel(Content);
+            await dx29.CreateNoteAsync(CaseId, model);
+        }
+        else
+        {
+            model.Content = Content;
+            await dx29.UpdateNoteAsync(CaseId, model);
+        }
+
+        await OnAccept.InvokeAsync();
+    }
+}

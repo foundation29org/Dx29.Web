@@ -1,0 +1,87 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@if (Segments != null)
+{
+    bool first = true;
+    @foreach (var seg in Segments)
+    {
+        if (!first)
+        {
+            <hr class="my-8" />
+        }
+
+        <DocLiteral Text="@seg.Source?.Text" />
+
+        <div class="entities">
+            @foreach (var ann in seg.Annotations)
+            {
+                var entity = GetEntity(ann);
+                if (entity != null && entity.Selected)
+                {
+                    var neg = ann.IsNegated ? NegAttribute : null;
+                    if (HasInfo(ann))
+                    {
+                        <button class="btn" @onclick="() => OnAnnotationClick(ann)">
+                            <mark data-entity="@entity.Id" data-entity-info="" @attributes="neg">
+                                @ann.Text
+                                <span>&nbsp;</span>
+                                <i class="fas fa-info-circle text-primary" style="margin-top: -8px"></i>
+                            </mark>
+                        </button>
+                    }
+                    else
+                    {
+                        <mark data-entity="@entity.Id" @attributes="neg">
+                            @ann.Text
+                        </mark>
+                    }
+                }
+                else
+                {
+                    @ann.Text
+                }
+            }
+        </div>
+        first = false;
+    }
+}
+
+<DocDetails @ref="details" />
+
+@code
+{
+    [Parameter]
+    public IList<SegAnnotations> Segments { get; set; }
+
+    [Parameter]
+    public IList<SelectableItem> SelectedTerms { get; set; }
+
+    [Parameter]
+    public string Term { get; set; }
+
+    private DocDetails details;
+
+    private readonly Dictionary<string, object> NegAttribute = new Dictionary<string, object>() { { "data-entity-neg", "negated" } };
+
+    private SelectableItem GetEntity(Annotation ann)
+    {
+        if (Term == null || ann.ContainsId(Term))
+        {
+            if (SelectedTerms != null && ann.Category != null)
+            {
+                return SelectedTerms.Where(r => r.Id == ann.Category).FirstOrDefault();
+            }
+        }
+        return null;
+    }
+
+    private bool HasInfo(Annotation annotation)
+    {
+        return annotation.Links != null;
+    }
+
+    private async void OnAnnotationClick(Annotation annotation)
+    {
+        await details.OpenAsync(annotation);
+    }
+}

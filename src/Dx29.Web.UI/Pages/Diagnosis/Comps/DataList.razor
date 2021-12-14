@@ -1,0 +1,52 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@if (Items != null)
+{
+    <MasterDetailLeft Items="Items" TItem="DiffDisease" Context="item" OnItemClick="OnSelectedHandler">
+        <Header>
+            <h3>Diseases suggestions</h3>
+            @if (Items.Count > 0)
+            {
+                <div class="opa-75 mb-4">
+                    <p>This list contains diseases to consider in a differential diagnosis and their related genes. You can see further details and the similarity of the patient with each disease.</p>
+                    <p>Select the candidate diagnosis.</p>
+                </div>
+
+            }
+            else
+            {
+                <div class="text-truncate-2 opa-75 mb-4">No diseases found.</div>
+            }
+        </Header>
+        <CheckboxTemplate>
+            <label class="checkbox">
+                <input type="checkbox" @bind="@item.IsSelected" />
+                <span></span>
+            </label>
+        </CheckboxTemplate>
+        <ItemTemplate>
+            <div class="d-block">
+                <div class="text-truncate-1 font-weight-bolder">@item.Name</div>
+                <div class="text-truncate-1 opa-75">@item.Desc</div>
+            </div>
+        </ItemTemplate>
+    </MasterDetailLeft>
+}
+@code
+{
+    [Parameter]
+    public IList<DiffDisease> Items { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnSelected { get; set; }
+
+    private void OnSelectedHandler(DiffDisease item)
+    {
+        Console.WriteLine(item.Id);
+        foreach (var xref in item.XRefs)
+        {
+            Console.WriteLine(xref);
+        }
+        OnSelected.InvokeAsync(item.Id);
+    }
+}

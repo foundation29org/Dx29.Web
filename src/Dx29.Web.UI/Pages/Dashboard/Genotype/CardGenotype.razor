@@ -1,0 +1,66 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<DashboardCard CssClassBody="min-h-100px max-h-150px" Name="Genotype" Title="@Localize["Genotype"]" Subtitle="@TotalCount" HRef="@HRef" AddHRef="@AddHRef" IsLoading="IsLoading">
+    <DataTable CssClass="compact">
+        <DataTableBody>
+            <Repeater Items="Items" Context="item">
+                <tr>
+                    <TDIcon Status="@item.Status">
+                        <KnownIcon Name="Genotype" Type="Item" />
+                    </TDIcon>
+                    <TDTextLabel Text="@item.Name" Label="@Localize.AsFileSize(item.Size)" IsDisable="@(!item.IsReady())" OnClick="() => OnItemClick(item)" />
+                </tr>
+            </Repeater>
+        </DataTableBody>
+    </DataTable>
+</DashboardCard>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private IList<ReportModel> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0} genotype files", Items.Count];
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadItemsAsync();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var model = await dx29.GetGeneReportsAsync(CaseId);
+        Items = model;
+    }
+
+    private void OnItemClick(ReportModel item)
+    {
+        NavigateTo(DetailsHRef(item.Id));
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+
+    private string HRef => $"/Genotype/{CaseId}";
+    private string AddHRef => $"/Genotype/AddNew/{CaseId}?no-track";
+    private string DetailsHRef(string id) => $"/Genotype/{CaseId}/{id}";
+}

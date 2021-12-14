@@ -1,0 +1,39 @@
+﻿@page "/Genotype/{caseId}/{id}"
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+
+<Card>
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Genotype" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Genotype"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardBody>
+        <DetailsGenotypeView Items="Items" />
+    </CardBody>
+</Card>
+
+@code
+{
+    [Parameter]
+    public string Id { get; set; }
+
+    public List<GenotypeInfo> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Found {0} genes", Items.Count];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Items = await dx29.GetGeneResultsAsync(CaseId, Id);
+    }
+
+    private string BackHRef => $"/Genotype/{CaseId}";
+}

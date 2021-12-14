@@ -1,0 +1,32 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject NavigationService Navigation
+
+@if (BackHRef != null)
+{
+    <div class="btn btn-icon btn-icon-dark-50 btn-hover-bg-secondary mr-4 opa-50" @onclick="OnClick">
+        <i class="icon-xl flaticon2-left-arrow-1"></i>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public string BackHRef { get; set; }
+
+    [Parameter]
+    public Func<Task<bool>> ConfirmBackNavigationAsync { get; set; }
+
+    private async Task OnClick()
+    {
+        if (ConfirmBackNavigationAsync != null)
+        {
+            var ok = await ConfirmBackNavigationAsync();
+            if (!ok)
+            {
+                return;
+            }
+        }
+        Navigation.TryGoBack(BackHRef);
+    }
+}

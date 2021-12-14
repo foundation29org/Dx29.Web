@@ -1,0 +1,36 @@
+﻿@page "/Welcome"
+
+@attribute [Authorize]
+
+@inherits Page
+
+@inject ILogService Log
+
+<p>1</p>
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var user = (await AuthenticationState).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            if (user.IsInRole("Patient"))
+            {
+                NavigationManager.NavigateTo("/Dashboard");
+            }
+            else if (user.IsInRole("Physician"))
+            {
+                NavigationManager.NavigateTo("/Patients");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/NotAuthorized");
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="pb-5" data-wizard-type="step-content" data-wizard-state="@State">
+    @ChildContent
+</div>
+
+@code
+{
+    [CascadingParameter]
+    public Wizard ContainerWizard { get; set; }
+
+    [Parameter]
+    public int Position { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public string State => Position == ContainerWizard.Index ? "current" : "";
+}

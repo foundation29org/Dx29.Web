@@ -1,0 +1,139 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+<div class="row p-4">
+    @if ((PhenSimilarity != null) && (!_loading))
+    {
+        <div class="col-xl-12">
+            <Diagnosis2SymptomsVenn PhenSimilarity="@PhenSimilarity" SelectedDiseaseName="@SelectedDiseaseName"></Diagnosis2SymptomsVenn>
+        </div>
+        <div class="col-xl-12 mt-4">
+            <Diagnosis2SymptomsTable CaseId="@CaseId" PhenSimilarity="@PhenSimilarity" SelectedDiseaseName="@SelectedDiseaseName" OnSymptomsChanged="(hpoNavigatorDialog)=>OnSymptomsChanged(hpoNavigatorDialog)"></Diagnosis2SymptomsTable>
+        </div>
+    }
+    else if (_loading)
+    {
+        <div class="col-xl-12 my-4">
+            <div class="d-flex flex-column align-items-center w-100">
+                <Spinner CssClass="spinner-xl" />
+            </div>
+        </div>
+    }
+    else if(SelectedDiseaseName!=null)
+    {
+        <div class="col-xl-12">
+            <span>@Localize["Sorry, at this time we do not have symptom data data for {0}. I you can provide information, contact us here", SelectedDiseaseName]</span>
+        </div>
+        <div class="col-xl-12 text-center mt-4">
+            <ButtonIcon Text="@Localize["Contact"]" OnClick="() => OnContactAsync()" CssClass="min-w-160p">
+                <Icon><i class="icon-lg  flaticon-email"></i></Icon>
+            </ButtonIcon>
+        </div>
+    }
+</div>
+<DialogSendEmailSupport @ref="DialogSendEmail" Dx29Section="@Localize["Disease resources HUB"]" Subject=@Localize["Symptoms"] Info="@InfoSupport" ></DialogSendEmailSupport>
+
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseName { get; set; } = null;
+
+    private List<PhenSimilarity> PhenSimilarity = null;
+    private IList<Symptom> CaseSymptoms = null;
+
+    private bool _loading = false;
+
+    private DialogSendEmailSupport DialogSendEmail;
+    private SupportInfoEmail InfoSupport = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        await LoadPhenSimilarity();
+        await base.OnParametersSetAsync();
+        _loading = false;
+    }
+    private async Task LoadPhenSimilarity()
+    {
+        InfoSupport = null;
+        CaseSymptoms = await dx29.GetSymptomsAsync(CaseId);
+        var items = (await dx29.GetPhenSimilarityAsync(CaseId, SelectedDiseaseId));
+        if (items?.Count > 0)
+        {
+            PhenSimilarity = items.OrderByDescending(r => r.HasDisease).OrderByDescending(r => r.HasDisease == r.HasPatient).OrderBy(r => r.Frequency.Id).ToList();
+        }
+        else
+        {
+            PhenSimilarity = null;
+        }
+    }
+
+    private async Task OnSymptomsChanged(HPONavigatorDialog hpoNavigator)
+    {
+        _loading = true;
+        foreach (var term in hpoNavigator.HPONavigator.AddedItems.Values)
+        {
+            var model = TryGetSymptom(term.Id);
+            if (model != null)
+            {
+                model.IsSelected = true;
+            }
+            else
+            {
+                model = new SymptomDesc()
+                {
+                    Id = term.Id,
+                    Name = term.Name,
+                    Desc = term.Desc
+                };
+                model.IsSelected = true;
+                model.LastUpdate = DateTimeOffset.UtcNow;
+                CaseSymptoms.Insert(0, model);
+            }
+        }
+        foreach (var item in hpoNavigator.HPONavigator.RemovedItems.Values)
+        {
+            DeselectItem(CaseSymptoms, item.Id);
+        }
+
+        await dx29.UpsertSymptomsAsync(CaseId, CaseSymptoms);
+        await LoadPhenSimilarity();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private Symptom TryGetSymptom(string id)
+    {
+        return CaseSymptoms.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    }
+
+    public void DeselectItem(IList<Symptom> items, string id)
+    {
+        var term = items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        if (term != null)
+        {
+            term.IsSelected = false;
+        }
+    }
+
+    private async Task OnContactAsync()
+    {
+        SetInfoSupport();
+        await DialogSendEmail.OpenAsync();
+    }
+    private void SetInfoSupport()
+    {
+        InfoSupport = new SupportInfoEmail();
+        InfoSupport.Add("Selected disease", SelectedDiseaseName);
+    }
+}

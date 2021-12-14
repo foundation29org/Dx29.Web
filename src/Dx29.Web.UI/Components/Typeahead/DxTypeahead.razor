@@ -1,0 +1,117 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+@namespace Dx29.Web.UI.Components
+
+@typeparam TItem
+@typeparam TValue
+
+<div class="dx-typeahead @FieldCssClasses">
+
+    <div class="dx-typeahead__controls">
+
+        @if (IsShowingMask)
+        {
+            <div class="dx-typeahead__input-mask-wrapper">
+                <div class="dx-typeahead__input-mask" @onclick="HandleClickOnMask" @onkeyup="HandleKeyUpOnMask" tabindex="0" @ref="_mask">
+                    @SelectedTemplate(Value)
+                </div>
+                <div class="dx-typeahead__clear" @onclick="HandleClear" tabindex="-1">
+                    &#10005;
+                </div>
+            </div>
+        }
+        <textarea @ref="_searchInput"
+                  @bind-value="SearchText"
+                  @bind-value:event="oninput"
+                  @onkeyup="HandleKeyup"
+                  @onkeyup:stopPropagation="@StopPropagation"
+                  @onkeyup:preventDefault="@PreventDefault"
+                  @onfocus="HandleInputFocus"
+                  @attributes="AdditionalAttributes"
+                  rows=@TextAreaRows
+                  autocomplete="off"
+                  type="text"
+                  class="pr-14 dx-typeahead__input @(IsShowingMask ? "dx-typeahead__input-hidden" : null)" />
+
+        @if (IsSearching)
+        {
+            <div class="dx-typeahead__loader"></div>
+        }
+
+    </div>
+
+    @if (ShouldShowHelpTemplate())
+    {
+        <div class="dx-typeahead__results">
+            <div class="dx-typeahead__results-help-template">
+                @HelpTemplate
+            </div>
+        </div>
+    }
+    else if (ShouldShowSuggestions())
+    {
+        <div class="dx-typeahead__results">
+            @if (HeaderTemplate != null)
+            {
+                <div class="dx-typeahead__results-header">
+                    @HeaderTemplate
+                </div>
+            }
+
+            @for (var i = 0; i < Suggestions.Length; i++)
+            {
+                var item = Suggestions[i];
+
+                <div @key="item" class="dx-typeahead__result @GetSelectedSuggestionClass(item, i)" @onclick="@(_ => SelectResult(item))">
+                    @ResultTemplate(item)
+                </div>
+            }
+
+            @if (FooterTemplate != null)
+            {
+                <div class="dx-typeahead__results-footer">
+                    @FooterTemplate
+                </div>
+            }
+        </div>
+    }
+    else if (ShowNotFound())
+    {
+    }
+
+    <div style="position: absolute; top: 2px; right: 2px">
+        <button class="btn btn-icon btn-lg btn-clean" @onclick="OnClear" @onclick:preventDefault>
+            <i class="icon-md flaticon2-cross"></i>
+        </button>
+    </div>
+
+    <div style="position: absolute; top: 2px; right: -52px">
+        <button class="btn btn-icon btn-lg btn-primary" @onclick="OnSearch" @onclick:preventDefault>
+            <i class="icon-md fas fa-search"></i>
+        </button>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string TextAreaRows { get; set; } = "4";
+
+    private void OnClear()
+    {
+        Initialize();
+    }
+
+    private async Task OnSearch()
+    {
+        if (!String.IsNullOrWhiteSpace(SearchText))
+        {
+            await OnSearchText.InvokeAsync(SearchText);
+        }
+    }
+
+    public async Task FocusAsync()
+    {
+        await _searchInput.FocusAsync();
+    }
+}

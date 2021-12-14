@@ -1,0 +1,107 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+@if (CaseSummary != null)
+{
+    if (IsBusy || CaseSummary.IsDataAnalysisBusy())
+    {
+        <SummaryHeader Title="@Localize["Matching diseases"]" Subtitle="@Localize["Executing data analysis..."]" />
+        <div class="m-4">
+            <div class="alert alert-custom alert-outline-primary fade show mb-5" role="alert">
+                <Spinner CssClass="spinner-ms" />
+                <div class="alert-text ml-12">@Localize["Analysing data to find matching diseases, please wait..."]</div>
+            </div>
+        </div>
+    }
+    else if (CaseSummary.IsDataAnalysisEmpty())
+    {
+        if (CaseSummary.IsBusy())
+        {
+            <SummaryHeader Title="@Localize["Matching diseases"]" Subtitle="@Localize["Processing documents..."]" />
+            <div class="m-4">
+                <div class="alert alert-custom alert-outline-primary fade show mb-5" role="alert">
+                    <Spinner CssClass="spinner-ms" />
+                    <div class="alert-text ml-12">@Localize["We are processing your documents. Please wait..."]</div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <SummaryHeader Title="@Localize["Matching diseases"]" Subtitle="@Localize["Data Analysis not executed"]" />
+            <div>
+                <div class="pt-4 font-size-h5 font-weight-bold">@Localize["Do you want to execute a data analysis to find matching diseases?"]</div>
+                <div class="py-6">
+                    <ButtonIcon CssClass="" Text="@Localize["Execute Analysis"]" OnClick="OnExecuteAnalysis">
+                        <Icon><i class="icon-md fas fa-play"></i></Icon>
+                    </ButtonIcon>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <SummaryDiagnosisItems CaseId="@CaseId" IsUpToDate="CaseSummary.IsDataAnalysisUpToDate()" IsBusy="CaseSummary.IsBusy()" OnExecuteAnalysis="OnExecuteAnalysis" />
+    }
+}
+
+<DialogOk @ref="Dialog" Title="@Localize["Not enought symptoms"]">
+    <h6>@Localize["There are not enough symptoms to execute a data analysis."]</h6>
+    <p>@Localize["Please, add at least 1 symptom and try again."]</p>
+    <p></p>
+</DialogOk>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public MedicalCaseSummary CaseSummary { get; set; }
+
+    [Parameter]
+    public EventCallback OnUpdate { get; set; }
+
+    private DialogOk Dialog;
+
+    private bool IsBusy = false;
+
+    protected override void OnInitialized()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        base.OnInitialized();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await RefreshAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshAsync()
+    {
+        CaseSummary = await dx29.GetCaseSummaryAsync(CaseId);
+        StateHasChanged();
+    }
+
+    private void OnExecuteAnalysis()
+    {
+        if (CaseSummary.GetEligibleSymptoms().Count > 0)
+        {
+            NavigateTo($"/DataAnalysis/New/{CaseId}");
+        }
+        else
+        {
+            Dialog.Open();
+        }
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+}

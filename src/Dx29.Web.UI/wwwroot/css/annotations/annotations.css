@@ -1,0 +1,288 @@
+﻿.entities {
+    line-height: 2.9em;
+    font-size: 1.1em;
+}
+
+    .entities .btn {
+        font-size: 1em;
+    }
+
+    .entities hr {
+        margin: 38px 0px 0px 0px;
+        padding: 8px 0px 0px 0px;
+    }
+
+.literal {
+    opacity: 1.0;
+    line-height: 2;
+    font-size: 1.1em;
+    font-style: italic;
+    color: royalblue;
+}
+
+.opa-50 {
+    opacity: 0.50;
+}
+
+.opa-75 {
+    opacity: 0.75;
+}
+
+[data-entity] {
+    line-height: 1em;
+    position: relative;
+    margin: 0px 2px;
+    background: transparent;
+    border-bottom: solid 4px #444;
+    display: inline-block;
+    text-align: center;
+    min-width: 128px;
+    font-weight: 500;
+}
+
+    [data-entity][data-entity-info]:hover {
+        color: #3699FF;
+        cursor: pointer;
+    }
+
+    [data-entity]::before {
+        line-height: 1em;
+        position: absolute;
+        content: attr(data-entity);
+        font-size: 0.70em;
+        font-weight: 600;
+        text-transform: uppercase;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -1.75em;
+    }
+
+[data-entity-neg]::after {
+    line-height: 1em;
+    margin: -4px 0px 0px 4px;
+    padding: 4px 5px 3px 5px;
+    box-sizing: border-box;
+    content: attr(data-entity-neg);
+    border-radius: 5px;
+    font-size: 0.6em;
+    font-weight: 700;
+    color: white;
+    background: #ff0000c0;
+    text-transform: uppercase;
+    vertical-align: middle;
+    display: inline-block;
+    border: solid 1px #0000;
+}
+
+[data-entity][data-entity = "Symptom"] {
+    border-color: #8b0a50;
+}
+
+/*[data-entity][data-entity = "SymptomOrSign"] {
+    border-color: #00ff00;
+}
+*/
+[data-entity][data-entity = "SymptomOrSign"] {
+    border-color: #8b0a50;
+}
+
+    [data-entity][data-entity = "SymptomOrSign"]::before {
+        content: "Symptom_Or_Sign";
+    }
+
+/*[data-entity][data-entity = "Diagnosis"] {
+    border-color: #8b0a50;
+}
+*/
+[data-entity][data-entity = "Diagnosis"] {
+    border-color: #00ff00;
+}
+
+    [data-entity][data-entity = "Diagnosis"]::before {
+        content: "Diagnosis";
+    }
+
+
+[data-entity][data-entity = "AdministrativeEvent"] {
+    border-color: #4682b4;
+}
+
+    [data-entity][data-entity = "AdministrativeEvent"]::before {
+        content: "Administrative_Event";
+    }
+
+[data-entity][data-entity = "Age"] {
+    border-color: #f0e68c;
+}
+
+    [data-entity][data-entity = "Age"]::before {
+        content: "Age";
+    }
+
+[data-entity][data-entity = "BodyStructure"] {
+    border-color: #0000ff;
+}
+
+    [data-entity][data-entity = "BodyStructure"]::before {
+        content: "Body_Structure";
+    }
+
+[data-entity][data-entity = "CareEnvironment"] {
+    border-color: #123456;
+}
+
+    [data-entity][data-entity = "CareEnvironment"]::before {
+        content: "Care_Environment";
+    }
+
+[data-entity][data-entity = "ConditionQualifier"] {
+    border-color: #00cdcd;
+}
+
+    [data-entity][data-entity = "ConditionQualifier"]::before {
+        content: "Condition_Qualifier";
+    }
+
+[data-entity][data-entity = "Direction"] {
+    border-color: #8b8b00;
+}
+
+    [data-entity][data-entity = "Direction"]::before {
+        content: "Direction";
+    }
+
+[data-entity][data-entity = "Dosage"] {
+    border-color: #ff4500;
+}
+
+    [data-entity][data-entity = "Dosage"]::before {
+        content: "Dosage";
+    }
+
+[data-entity][data-entity = "ExaminationName"] {
+    border-color: #ee7600;
+}
+
+    [data-entity][data-entity = "ExaminationName"]::before {
+        content: "Examination_Name";
+    }
+
+[data-entity][data-entity = "FamilyRelation"] {
+    border-color: #8b7355;
+}
+
+    [data-entity][data-entity = "FamilyRelation"]::before {
+        content: "Family_Relation";
+    }
+
+[data-entity][data-entity = "Frequency"] {
+    border-color: #1e90ff;
+}
+
+    [data-entity][data-entity = "Frequency"]::before {
+        content: "Frequency";
+    }
+
+[data-entity][data-entity = "Gender"] {
+    border-color: #00008b;
+}
+
+    [data-entity][data-entity = "Gender"]::before {
+        content: "Gender";
+    }
+
+[data-entity][data-entity = "Gene"] {
+    border-color: #cd0000;
+}
+
+    [data-entity][data-entity = "Gene"]::before {
+        content: "Gene";
+    }
+
+[data-entity][data-entity = "HealthcareProfession"] {
+    border-color: #ffd700;
+}
+
+    [data-entity][data-entity = "HealthcareProfession"]::before {
+        content: "Healthcare_Profession";
+    }
+
+[data-entity][data-entity = "MeasurementUnit"] {
+    border-color: #daa520;
+}
+
+    [data-entity][data-entity = "MeasurementUnit"]::before {
+        content: "Measurement_Unit";
+    }
+
+[data-entity][data-entity = "MeasurementValue"] {
+    border-color: #cd1076;
+}
+
+    [data-entity][data-entity = "MeasurementValue"]::before {
+        content: "Measurement_Value";
+    }
+
+[data-entity][data-entity = "MedicationClass"] {
+    border-color: #00ffff;
+}
+
+    [data-entity][data-entity = "MedicationClass"]::before {
+        content: "Medication_Class";
+    }
+
+[data-entity][data-entity = "MedicationForm"] {
+    border-color: #bc8f8f;
+}
+
+    [data-entity][data-entity = "MedicationForm"]::before {
+        content: "Medication_Form";
+    }
+
+[data-entity][data-entity = "MedicationName"] {
+    border-color: #9932cc;
+}
+
+    [data-entity][data-entity = "MedicationName"]::before {
+        content: "Medication_Name";
+    }
+
+[data-entity][data-entity = "MedicationRoute"] {
+    border-color: #7fff00;
+}
+
+    [data-entity][data-entity = "MedicationRoute"]::before {
+        content: "Medication_Route";
+    }
+
+[data-entity][data-entity = "RelationalOperator"] {
+    border-color: #228b22;
+}
+
+    [data-entity][data-entity = "RelationalOperator"]::before {
+        content: "Relational_Operator";
+    }
+
+[data-entity][data-entity = "Time"] {
+    border-color: #8b4500;
+}
+
+    [data-entity][data-entity = "Time"]::before {
+        content: "Time";
+    }
+
+[data-entity][data-entity = "TreatmentName"] {
+    border-color: #66cd00;
+}
+
+    [data-entity][data-entity = "TreatmentName"]::before {
+        content: "Treatment_Name";
+    }
+
+[data-entity][data-entity = "Variant"] {
+    border-color: #cd8c95;
+}
+
+    [data-entity][data-entity = "Variant"]::before {
+        content: "Variant";
+    }

@@ -1,0 +1,181 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject IJSRuntime JS
+
+<div class="position-relative w-100 cursor-pointer">
+    <input class="position-absolute w-100 h-100 opacity-1" @ref="Input" type="file" accept="@AcceptExtensions" @onchange="OnChange" />
+    <div class="p-4 border-light-primary min-h-150px" style="border: dashed 2px">
+        <div class="p-4">
+            <FileUploadItems Items="Items" OnCancelItem="OnCancelItem" />
+        </div>
+        <div class="text-center align-bottom bg-transparent">
+            @ChildContent
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public Dictionary<string, FileItem> FileItems { get; set; }
+
+    [Parameter]
+    public string Url { get; set; }
+
+    [Parameter]
+    public string AccessToken { get; set; }
+
+    [Parameter]
+    public string AcceptExtensions { get; set; }
+
+    [Parameter]
+    public List<string> ExistingNames { get; set; } = new List<string>();
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+
+    [Parameter]
+    public EventCallback<bool> OnReadyStateChanged { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnCancelStateChanged { get; set; }
+
+    [Parameter]
+    public int MaxFilesByType { get; set; }
+
+    [Parameter]
+    public List<string> EquivalentExtensions { get; set; }
+
+    private IList<FileItem> Items => FileItems.Values.Where(r => !r.IsDeleted).ToList();
+
+    private ElementReference Input;
+
+    public bool IsReady { get; set; } = true;
+
+    private List<string> extensionsYetAdded = new List<string>();
+
+    private async Task OnChange(ChangeEventArgs args)
+    {
+        foreach (var file in FileItems)
+        {
+            if ((file.Value.Status != "Deleted") && (file.Value.Status != "Canceled"))
+            {
+                var extensionFileUploaded = GetExtension(file.Value.Name).ToLower();
+                if (extensionsYetAdded.Contains(extensionFileUploaded) == false)
+                {
+                    extensionsYetAdded.Add(extensionFileUploaded);
+                    if (EquivalentExtensions.Contains(extensionFileUploaded))
+                    {
+                        foreach (var extension in EquivalentExtensions)
+                        {
+                            if (extension != extensionFileUploaded)
+                            {
+                                extensionsYetAdded.Add(extension);
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        var infos = await JS.InvokeAsync<IList<FileInfo>>("fileUpload.onChange", Input);
+        foreach (var info in infos)
+        {
+            var item = FileItem.FromFileInfo(info, ExistingNames);
+
+            if(extensionsYetAdded.Contains(GetExtension(item.Name)) == false)
+            {
+                FileItems.Add(item.Id, item);
+                info.UniqueName = item.Name;
+            }
+            else
+            {
+                if (FileItems.Count < MaxFilesByType)
+                {
+                    FileItems.Add(item.Id, item);
+                    info.UniqueName = item.Name;
+                }
+                else
+                {
+                    item.Status = "Canceled";
+                    FileItems.Add(item.Id, item);
+                }
+            }
+        }
+
+        infos = infos.Where(r => (r.UniqueName!=null)).ToList();
+
+        await SetReadyStateAsync();
+        await JS.InvokeAsync<string>("fileUpload.sendFiles", DotNetObjectReference.Create(this), Input, infos, Url, AccessToken);
+        await SetReadyStateAsync();
+    }
+
+    [JSInvokable]
+    public async Task ReadyStateChangeHandler(FileInfo info)
+    {
+        FileItems[info.Id].Merge(info);
+        StateHasChanged();
+        await SetReadyStateAsync();
+    }
+
+    [JSInvokable]
+    public async Task<bool> UploadProgressHandler(FileInfo info)
+    {
+        FileItems[info.Id].Merge(info);
+        StateHasChanged();
+        await SetReadyStateAsync();
+        return FileItems[info.Id].IsCanceled;
+    }
+
+    private async Task OnCancelItem(FileItem item)
+    {
+        var extensionDeleted = GetExtension(item.Name).ToLower();
+
+        if (EquivalentExtensions.Contains(extensionDeleted))
+        {
+            foreach (var extension in EquivalentExtensions)
+            {
+                if (extension != extensionDeleted)
+                {
+                    extensionsYetAdded.Remove(extension);
+                }
+            }
+
+        }
+        extensionsYetAdded.Remove(extensionDeleted);
+
+        if (item.Status.EqualsNoCase("Busy"))
+        {
+            item.Status = "Canceled";
+            item.IsCanceled = true;
+        }
+        else
+        {
+            item.Status = "Deleted";
+            item.IsDeleted = true;
+            ExistingNames.Remove(item.Name.ToLower());
+        }
+        await OnCancelStateChanged.InvokeAsync(true);
+    }
+
+    private async Task SetReadyStateAsync()
+    {
+        bool isReady = !Items.Any(r => r.Status.EqualsNoCase("Busy"));
+        if (IsReady != isReady)
+        {
+            IsReady = isReady;
+            await OnReadyStateChanged.InvokeAsync(IsReady);
+        }
+    }
+
+    private string GetExtension(string filename)
+    {
+        filename = filename.ToLower();
+        if (filename.EndsWith(".vcf.gz"))
+        {
+            return ".vcf.gz";
+        }
+        return System.IO.Path.GetExtension(filename);
+    }
+}

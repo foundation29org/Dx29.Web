@@ -1,0 +1,45 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<svg stroke="#ffff" stroke-width="1" fill="@GetColor()" viewBox="-4 0 42 48" width="@GetWidth()" height="@GetHeight()">
+    <polygon class="FileIcon-base" points="38 48 0 48 0 0 26 0 38 12 38 48" />
+    <polygon class="FileIcon-front" points="35 45 3 45 3 3 22 3 22 16 35 16 35 45" fill="#fff" />
+    <polygon class="FileIcon-fold" points="25 3 35 13 25 13 25 3" fill="#fff" />
+    <rect x="-4" y="21" width="34" height="18" rx="1" />
+    <text text-anchor="middle" font-weight="100" x="13" y="34" font-size="12" fill="#fff">@GetExtension()</text>
+</svg>
+
+@code
+{
+    [Parameter]
+    public string Extension { get; set; }
+
+    [Parameter]
+    public int Size { get; set; } = 32;
+
+    private string GetExtension() => $"{Extension}".TrimStart('.').PadRight(3).Substring(0, 3).ToUpper();
+
+    private int GetWidth() => Size;
+    private int GetHeight() => (int)(Size / 1.1);
+
+    private string GetColor()
+    {
+        switch (GetExtension().ToLower())
+        {
+            case "pdf":
+                return "#f40f02c0";
+            case "doc":
+            case "docx":
+                return "#5e60cec0";
+            case "txt":
+                return "#666666c0";
+            case "jpg":
+                return "#2a9d8fc0";
+            case "png":
+                return "#2a9d8fc0";
+            case "vcf":
+                return "#9d4eddc0";
+            default:
+                return "#666666c0";
+        }
+    }
+}

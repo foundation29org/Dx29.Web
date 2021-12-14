@@ -1,0 +1,19 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div id="@Id" role="tabpanel" aria-labelledby="@Id" class="tab-pane fade show @GetActive()">
+    @ChildContent
+</div>
+
+@code
+{
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool Active { get; set; }
+
+    string GetActive() => Active ? "active" : "";
+}

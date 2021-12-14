@@ -1,0 +1,58 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject LocalizationService Localize
+
+<Table CssClass="compact">
+    <TableBody>
+        <Repeater Items="Items" TItem="FileItem" Context="item">
+            <tr>
+                <TD CssClass="w-35px">
+                    <Button CssClass="btn-sm btn-clean" OnClick="() => CancelItemHandler(item)">
+                        <i class="flaticon2-delete text-hover-danger icon-sm opacity-80"></i>
+                    </Button>
+                </TD>
+                <TDDocIcon Extension="@GetExtension(item.Name)" Status="@item.Status" />
+                <TDProgress Text="@item.Name" Label="@GetLabel(item)" Status="@item.Status" Progress="@item.Progress" />
+            </tr>
+        </Repeater>
+    </TableBody>
+</Table>
+
+@code
+{
+    [Parameter]
+    public IList<FileItem> Items { get; set; }
+
+    [Parameter]
+    public EventCallback<FileItem> OnCancelItem { get; set; }
+
+    private async void CancelItemHandler(FileItem item)
+    {
+        await OnCancelItem.InvokeAsync(item);
+    }
+
+    private string GetLabel(FileItem item)
+    {
+        switch (item.Status.ToLower())
+        {
+            case "ready":
+                return Localize.AsFileSize(item.Size);
+            case "canceled":
+                return Localize["Canceled"];
+            case "error":
+                return item.Error;
+            default:
+                return "";
+        }
+    }
+
+    private string GetExtension(string filename)
+    {
+        filename = filename.ToLower();
+        if (filename.EndsWith(".vcf.gz"))
+        {
+            return ".vcf.gz";
+        }
+        return System.IO.Path.GetExtension(filename);
+    }
+}

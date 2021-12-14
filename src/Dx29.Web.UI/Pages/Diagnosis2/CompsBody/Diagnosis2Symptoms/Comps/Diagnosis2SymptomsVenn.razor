@@ -1,0 +1,30 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+
+@if (PhenSimilarity != null)
+{
+    (var patientSymptoms, var diseaseSymptoms, var matchSymptoms, var patientPercent, var diseasePercent) = PhenSimilarity.Diagnosis2SymptomsMatch();
+    (var na, var nb, var nc) = PhenSimilarity.Diagnosis2SymptomsVenn();
+
+    <div class="progress my-4" style="height: 20px">
+        <div class="progress-bar bg-success" role="progressbar" style="width: @($"{nb}%")" aria-valuenow="@(nb)" aria-valuemin="0" aria-valuemax="100">@matchSymptoms</div>
+        <div class="progress-bar bg-danger opa-75" role="progressbar" style="width: @($"{na}%")" aria-valuenow="@(na)" aria-valuemin="0" aria-valuemax="100">@(patientSymptoms- matchSymptoms)</div>
+        <div class="progress-bar bg-light" role="progressbar" style="width: @($"{nc}%")" aria-valuenow="@(nc)" aria-valuemin="0" aria-valuemax="100"><span class="text-dark">@(diseaseSymptoms - matchSymptoms)</span></div>
+    </div>
+    <p class="text-black-50 text-center font-size-sm">@Localize["{0} out of {1} symptoms match from a total of {2} symptoms in the disease", matchSymptoms, patientSymptoms, diseaseSymptoms]</p>
+}
+
+
+@code
+{
+    [Parameter]
+    public List<PhenSimilarity> PhenSimilarity { get; set; } = null;
+
+    [Parameter]
+    public string SelectedDiseaseName { get; set; }
+
+}

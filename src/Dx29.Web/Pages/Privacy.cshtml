@@ -1,0 +1,17 @@
+﻿@page
+
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Dx29.Web
+@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+
+
+@model Dx29.Web.Pages.PrivacyModel
+
+@{
+    ViewData["Title"] = @SharedLocalizer["Privacy Policy"];
+}
+<h1>@ViewData["Title"]</h1>
+
+
+@Html.Raw(Model.TermsAndConditions.Replace("\r\n", ""))
+

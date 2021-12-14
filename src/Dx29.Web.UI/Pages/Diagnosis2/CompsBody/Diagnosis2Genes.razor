@@ -1,0 +1,71 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+ 
+<div class="row p-4">
+    @if ((Genes != null) && (!_loading))
+    {
+        <div class="col-xl-12">
+            <label class="font-weight-bolder text-uppercase">@Localize["Gene information between the patient and the disease"], <b> @SelectedDiseaseName</b></label>
+            <p>@Localize["The table shows the genes present in both the patient and the reference case."]</p>
+        </div>
+        <div class="col-xl-12 pt-2">
+            <DetailsGenotypeView Items = "@Genes" ></DetailsGenotypeView>
+        </div>
+    }
+    else if (_loading)
+    {
+        <div class="col-xl-12 my-4">
+            <div class="d-flex flex-column align-items-center w-100">
+                <Spinner CssClass="spinner-xl" />
+            </div>
+        </div>
+    }
+    else if(SelectedDiseaseName!=null)
+    {
+        <div class="col-xl-12">
+            <span>@Localize["There is no match between the genetic information available and {0}", SelectedDiseaseName]</span>
+        </div>
+    }
+</div>
+
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseName { get; set; } = null;
+
+    private List<GenotypeInfo> Genes = null;
+
+    private bool _loading = false;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        await LoadGenes();
+        await base.OnParametersSetAsync();
+        _loading = false;
+    }
+    private async Task LoadGenes()
+    {
+        string LastAnalysisId = await dx29.GetLastAnalysisIdAsync(CaseId);
+        string GeneReportId = await dx29.GetGeneReportId(CaseId, LastAnalysisId);
+        List<GenotypeInfo> geneitems = await dx29.GetCompareGeneResultsDiseaseAsync(CaseId, GeneReportId, SelectedDiseaseId);
+        
+        if (geneitems.Count > 0)
+        {
+            Genes = geneitems;
+        }
+    }
+
+}

@@ -1,0 +1,80 @@
+﻿@page "/Dashboard/{caseId}"
+
+@using System.Security.Claims
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+
+@if (User != null)
+{
+    if (User.IsInRole("Physician"))
+    {
+        <div class="row" id="element-to-print">
+            <div class="col-xl-12 col-xxl-12">
+                <CardDiagnosis2 CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-6 col-xxl-6">
+                <CardTimeline CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-6 col-xxl-6">
+                <CardSymptoms CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-4 col-xxl-4">
+                <CardNotes CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-4 col-xxl-4">
+                <CardReports CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-4 col-xxl-4">
+                <CardGenotype CaseId="@CaseId" />
+            </div>
+        </div>
+    }
+    if (User.IsInRole("Patient"))
+    {
+        <div class="row">
+            <div class="col-xl-12 col-xxl-12">
+                <CardDiagnosis2 CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-6 col-xxl-6">
+                <CardTimeline CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-6 col-xxl-6">
+                <CardSymptoms CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-4 col-xxl-4">
+                <CardNotes CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-4 col-xxl-4">
+                <CardReports CaseId="@CaseId" />
+            </div>
+            <div class="col-xl-4 col-xxl-4">
+                <CardGenotype CaseId="@CaseId" />
+            </div>
+        </div>
+    }
+}
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; }
+
+    private ClaimsPrincipal User = null;
+
+    protected override void OnInitialized()
+    {
+        Navigation.ClearNavigation();
+        base.OnInitialized();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AuthenticationState != null)
+        {
+            User = (await AuthenticationState).User;
+        }
+        await base.OnParametersSetAsync();
+    }
+}

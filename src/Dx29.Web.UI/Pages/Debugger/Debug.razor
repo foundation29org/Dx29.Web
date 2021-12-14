@@ -1,0 +1,68 @@
+﻿@page "/Debug/{caseId}"
+
+@attribute [Authorize(Roles = ROLES)]
+
+@inject Dx29Client dx29
+
+<div class="row">
+    <div class="col">
+        <Card>
+            <CardHeader>
+                <CardTitle Title="Case" />
+            </CardHeader>
+            <CardBody>
+                <pre>
+                    @CaseJson
+                </pre>
+            </CardBody>
+        </Card>
+    </div>
+</div>
+
+<Separator />
+
+<div class="row">
+    <div class="col">
+        <Card>
+            <CardHeader>
+                <CardTitle Title="Resources" />
+            </CardHeader>
+            <CardBody>
+                <pre>
+                    @ResourcesJson
+                </pre>
+            </CardBody>
+        </Card>
+    </div>
+</div>
+
+@code
+{
+    [Parameter] public string CaseId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var mcase = await dx29.GetMedicalCaseAsync(CaseId);
+            CaseJson = mcase.Serialize();
+
+            var resources = await dx29.GetResourceGroupsAsync(CaseId);
+            ResourcesJson = resources.Serialize();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    string CaseJson = null;
+    string ResourcesJson = null;
+
+
+#if DEBUG
+    const string ROLES = "User";
+#else
+    const string ROLES = "Admin";
+#endif
+}

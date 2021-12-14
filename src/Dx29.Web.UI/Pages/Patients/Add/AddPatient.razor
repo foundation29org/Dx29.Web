@@ -1,0 +1,161 @@
+﻿@page "/Patients/AddNew"
+
+@attribute [Authorize(Roles = "Physician")]
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+<Wizard LabelPrevious="@Localize["Previous"]" LabelNext="@Localize["Next"]" LabelFinish="@Localize["Finish"]" OnNavigation="OnNavigation" OnClose="OnClose" OnFinish="OnFinish">
+    <WizardSteps>
+        <WizardStep Position="0">
+            <Icon>
+                <i class="icon-xl flaticon2-user"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Patient Data"]</h3>
+                <div class="wizard-desc">@Localize["Enter patient personal data"]</div>
+            </Label>
+        </WizardStep>
+        <WizardStep Position="1">
+            <Icon>
+                <i class="icon-xl far fa-check-circle"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Symptoms"]</h3>
+                <div class="wizard-desc">@Localize["Add patient symptoms"]</div>
+            </Label>
+        </WizardStep>
+        <WizardStep Position="2">
+            <Icon>
+                <i class="icon-xl flaticon2-medical-records-1"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Medical Files"]</h3>
+                <div class="wizard-desc">@Localize["Add patient medical files"]</div>
+            </Label>
+        </WizardStep>
+        <WizardStep Position="3">
+            <Icon>
+                <i class="icon-xl flaticon2-list-2"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Summary"]</h3>
+                <div class="wizard-desc">@Localize["Review and commit"]</div>
+            </Label>
+        </WizardStep>
+    </WizardSteps>
+
+    <WizardStepContents>
+        <WizardStepContent Position="0">
+            <AddPatientStep1 Model="Model" @ref="step1" />
+        </WizardStepContent>
+        <WizardStepContent Position="1">
+            <AddPatientStep3 Items="Items" diseasesIds="@Model.DiseasesIds" />
+        </WizardStepContent>
+        <WizardStepContent Position="2">
+            <AddPatientStep2 FileItems="FileItems" />
+        </WizardStepContent>
+        <WizardStepContent Position="3">
+            <AddPatientStep4 Model="Model" Files="FilesReady" Items="Items.Where(r=> r.IsSelected).ToList()" @ref="step4" />
+        </WizardStepContent>
+    </WizardStepContents>
+</Wizard>
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Creating patient, please wait..."]" />
+
+<SyncDialogConfirm @ref="DialogConfirm" Title="@Localize["Are you sure?"]">
+    <h5>@Localize["You are going to create a patient with unknown gender."]</h5>
+    <p></p>
+</SyncDialogConfirm>
+
+@code
+{
+#if DEBUG
+    private PatientInfoModel Model = new PatientInfoModel() { Name = "Samp" };
+#else
+private PatientInfoModel Model = new PatientInfoModel();
+#endif
+
+    private DialogBusy DialogBusy;
+    private SyncDialogConfirm DialogConfirm;
+
+    private Dictionary<string, FileItem> FileItems = new Dictionary<string, FileItem>();
+
+    private List<TermDesc> Items = new List<TermDesc>();
+
+    private AddPatientStep1 step1;
+    private AddPatientStep4 step4;
+
+    private IList<FileItem> FilesReady => FileItems.Values.Where(r => r.IsReady).ToArray();
+
+    private async Task OnNavigation(WizardNavigationArgs args)
+    {
+        if (args.CurrentIndex == 0)
+        {
+            args.Cancel = !step1.Validate();
+            if (!args.Cancel)
+            {
+                if (step1.IsSelectedGenderUnknown())
+                {
+                    if (!(await DialogConfirm.OpenAsync()))
+                    {
+                        args.Cancel = true;
+                    }
+                }
+            }
+        }
+        else if (args.NewIndex == 3)
+        {
+            await step4.Refresh();
+        }
+    }
+
+    private void OnClose()
+    {
+        NavigationManager.NavigateTo("/Patients");
+    }
+
+    private async Task OnFinish()
+    {
+        await DialogBusy.OpenAsync();
+        Console.WriteLine(Model.Serialize(true));
+
+        var caseCreate = new CreatePatitentModel
+        {
+            PatientInfo = Model,
+            Files = FilesReady.Select(r => new FileModel(r.Response, r.Name, r.Size)).ToArray(),
+            Symptoms = Items.Where(r => r.IsSelected).Select(r => r.Id).ToArray()
+        };
+
+
+        var newCase = await dx29.CreatePatientAsync(caseCreate);
+
+        IList<FileItem> listGenotype = FilesReady.Where(r => (NameResolver.GetExtension(r.Name).Contains(".vcf"))).ToList();
+
+        if ((Items.Where(r => r.IsSelected).ToList().Count > 0) && (listGenotype.Count==0))
+        {
+            await dx29.CreateAnalysisAsync(newCase.Id, Items.Where(r => r.IsSelected).Select(r => r.Id).ToList());
+        }
+
+        await DialogBusy.CloseAsync();
+
+        if (newCase != null)
+        {
+            NavigationManager.NavigateTo($"/Dashboard/{newCase.Id}");
+            /*if (caseCreate.Files.Count > 0 || caseCreate.Symptoms.Count > 0)
+            {
+                NavigationManager.NavigateTo($"/Dashboard/{newCase.Id}");
+                //NavigationManager.NavigateTo($"/Diagnosis/{newCase.Id}");
+                //NavigationManager.NavigateTo($"/Summary/{newCase.Id}");
+            }
+            else
+            {
+                NavigationManager.NavigateTo($"/Dashboard/{newCase.Id}");
+                //NavigationManager.NavigateTo($"/Summary/{newCase.Id}");
+            }*/
+        }
+    }
+
+
+}

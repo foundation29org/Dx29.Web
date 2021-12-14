@@ -1,0 +1,72 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject Dx29Client dx29
+@inject LocalizationService Localize
+
+
+<Modal @ref="Dialog" CssClassModal="modal-lg">
+    <ModalBody>
+        @if (currentItem != null)
+        {
+            <div class="row">
+                <div class="col-xl-12">
+                    <h3 class="font-weight-bolder"> @currentItem.Name</h3>
+                </div>
+                <div class="col-xl-12">
+                    <p> @currentItem.Id.ToUpper() <a class="ml-1" href="https://hpo.jax.org/app/browse/term/@currentItem.Id.ToUpper()" target="_blank"><i class="fas fa-external-link-alt text-primary"></i></a></p> 
+                </div>
+                <div class="col-xl-12 mt-1">
+                    <h6 class="font-weight-bolder"> @Localize["Description"]</h6>
+                    <p> @currentItem.Desc</p>
+                </div>
+                <div class="col-xl-6 mt-1">
+                    <h6 class="font-weight-bolder"> @Localize["Start date"]</h6>
+                    @if (currentItem.StartDate != null)
+                    {
+                        <p> @currentItem.StartDate.Value.ToString("dd MMMM yyyy")</p>
+                    }
+                    else
+                    {
+                        <p> - </p>
+                    }
+
+                </div>
+                <div class="col-xl-6">
+                    <h6 class="font-weight-bolder">@Localize["End date"]</h6>
+                    @if (currentItem.EndDate != null)
+                    {
+                        <p> @currentItem.EndDate.Value.ToString("dd MMMM yyyy")</p>
+                    }
+                    else
+                    {
+                        <p> - </p>
+                    }
+
+                </div>
+                <div class="col-xl-12 mt-1">
+                    @if (currentItem.Notes != null)
+                    {
+                        <h6 class="font-weight-bolder">@Localize["Notes"]</h6>
+                        <p> @currentItem.Notes</p>
+                    }
+                </div>
+            </div>
+        }
+    </ModalBody>
+</Modal>
+
+
+@code
+{
+    private Modal Dialog;
+
+    private SymptomTimelineItem currentItem = null;
+
+    public void Open(SymptomTimelineItem item)
+    {
+        currentItem = item;
+        StateHasChanged();
+        Dialog.Open();
+    }
+
+}

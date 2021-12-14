@@ -1,0 +1,18 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="form-group row align-items-center m-0">
+    <label class="col-xl-2 col-lg-2 col-form-label font-weight-bolder text-left">@Caption</label>
+    <div class="col-lg-10 col-xl-10">
+        @ChildContent
+    </div>
+</div>
+
+
+@code
+{
+    [Parameter]
+    public string Caption { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

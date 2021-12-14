@@ -1,0 +1,262 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+@if (Items != null)
+{
+    <GeneDataTable Items="@Items" TItem="GenotypeInfo" Context="item" CssClass="bordered">
+        <HeaderTemplate>
+            <th>@Localize["Name"]</th>
+            <th></th>
+            <th></th>
+            <th>@Localize["Score"]</th>
+            <th style="width: 48px"></th>
+        </HeaderTemplate>
+        <RowTemplate>
+            <tr class="@GetBackgroundCss2(item.Name)">
+                <td class="py-6">
+                    <div class="font-weight-bolder font-size-h6">@item.Name</div>
+                </td>
+                <td>
+                    <span class="badge" style="background-color: @item.Whitelisted?.Color;color: @item.Whitelisted?.TextColor">@item.Whitelisted?.Name</span>
+                </td>
+                <td>
+                    @if (item.ClinVar != null)
+                    {
+                        foreach (var item2 in item.ClinVar)
+                        {
+                            if (item2.Name != "not provided")
+                            {
+                                <span class="badge border-right-radius-none" style="background-color: @item2.Color;color: @item2.TextColor">ClinVar</span><span class="badge border-left-radius-none opacity-70" style="background-color: @item2.Color;color: @item2.TextColor">@item2.Name</span>
+                            }
+                        }
+                    }
+
+                </td>
+                <td>
+                    <span class="badge border-right-radius-none" style="background-color: @item.Score.Color;color: @item.Score.TextColor">Score </span><span class="badge border-left-radius-none opacity-70" style="background-color: @item.Score.Color;color: @item.Score.TextColor">@GetRound(item.Score.Value)</span>
+                </td>
+                <td>
+                    <a href="#" class="btn btn-clean btn-light-primary btn-xs btn-icon ml-2" @onclick="() => SetVisible(item.Name)" @onclick:preventDefault>
+                        <i class="@GetIconCss(item.Name)"></i>
+                    </a>
+                </td>
+            </tr>
+        </RowTemplate>
+        <RowHiddenTemplate>
+            <tr class="@GetBackgroundCss(item.Name)">
+                <td class="p-0 px-4" colspan="5">
+                    <div class="@GetVisibleCss(item.Name)">
+                        @{int i = 0;}
+                        @foreach (var item3 in item.GenInfo)
+                        {
+                            <Separator H="2" />
+                            <div class="p-2">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <span class="badge border-right-radius-none" style="background-color: @item3.ExomiserScore.Color;color: @item3.ExomiserScore.TextColor">ExomiserScore </span><span class="badge border-left-radius-none opacity-70" style="background-color: @item3.ExomiserScore.Color;color: @item3.ExomiserScore.TextColor">@GetRound(item3.ExomiserScore.Value)</span>
+                                    </div>
+                                    <div class="col-4">
+                                        <p>
+                                            @item3.ModeOfInheritance.Name
+                                        </p>
+
+                                        @foreach (var itemMutation in item3.Mutation)
+                                        {
+                                            <p>@itemMutation.Name</p>
+                                        }
+
+                                        <p>
+                                            @item3.Chromosome
+                                        </p>
+                                        <p>
+                                            <span class="badge" style="background-color: @item3.VariantEffect.Color;color: @item3.VariantEffect.TextColor">@item3.VariantEffect.Name</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-4">
+                                        <table class="table table-score" style="background: #fff;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2"><span style="font-weight: bold;">Score</span></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        Exomiser
+                                                    </td>
+                                                    <td>
+                                                        @GetRound(item3.ExomiserScore.Value)
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Phenotype
+                                                    </td>
+                                                    <td>
+                                                        @GetRound(item3.PhenotypeScore.Value)
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Variant
+                                                    </td>
+                                                    <td>
+                                                        @GetRound(item3.VariantScore.Value)
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                @{String index = item.Name + i;}
+                                <div class="row">
+                                    Literature & detailed information
+                                    <a href="#" class="btn btn-clean btn-light-primary btn-xs btn-icon ml-2" @onclick="() => SetVisible2(index)" @onclick:preventDefault>
+                                        <i class="@GetIconCss2(index)"></i>
+                                    </a>
+                                </div>
+                                <div class="@GetVisibleCss2(index)">
+                                    <div class="row pt-2">
+                                        <div class="col-6">
+                                            @if (item3.Literature.Count > 0)
+                                            {
+                                                <table class="table table-score" style="background: #fff;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th><span style="font-weight: bold;">Literature</span></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var itemLiterature in item3.Literature)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    <span><a href="@itemLiterature.Link" target="_blank">@itemLiterature.Name</a></span>
+                                                                </td>
+                                                            </tr>
+
+                                                        }
+
+                                                    </tbody>
+                                                </table>
+                                            }
+
+                                            @if (item3.Frequency.Count > 0)
+                                            {
+                                                <table class="table table-score" style="background: #fff;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2"><span style="font-weight: bold;">Links of interest</span></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var itemFrequency in item3.Frequency)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    <span><a href="@itemFrequency.Link" target="_blank">@itemFrequency.Name</a></span>
+                                                                </td>
+                                                                <td>
+                                                                    <span>@GetRound3(itemFrequency.Value)</span>
+                                                                </td>
+                                                            </tr>
+
+                                                        }
+
+                                                    </tbody>
+                                                </table>
+                                            }
+
+                                        </div>
+                                        <div class="col-6">
+                                            @if (item3.PredictedPathogenicityScores.Count > 0)
+                                            {
+                                                <table class="table table-score" style="background: #fff;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="2"><span style="font-weight: bold;">In-silico metrics</span></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var itemPredictedPathogenicityScores in item3.PredictedPathogenicityScores)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    <span>@itemPredictedPathogenicityScores.Name</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span>@GetRound(itemPredictedPathogenicityScores.Value)</span>
+                                                                </td>
+                                                            </tr>
+
+                                                        }
+
+                                                    </tbody>
+                                                </table>
+                                            }
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            i++;
+                            if (i < item.GenInfo.Count && item.GenInfo.Count > 1)
+                            {
+                                <div style="border-bottom: 1px solid #FFF;" />
+                            }
+
+                            <Separator H="2" />
+                        }
+                    </div>
+                </td>
+            </tr>
+        </RowHiddenTemplate>
+    </GeneDataTable>
+}
+
+@code
+{
+    [Parameter]
+    public IList<GenotypeInfo> Items { get; set; }
+
+    private HashSet<string> Visibles = new HashSet<string>();
+    private HashSet<string> Visibles2 = new HashSet<string>();
+
+    private string GetIconCss(string name) => Visibles.Contains(name) ? "flaticon2-up" : "flaticon2-down";
+    private string GetVisibleCss(string name) => Visibles.Contains(name) ? "d-block" : "d-none";
+    private string GetBackgroundCss(string name) => Visibles.Contains(name) ? "bg-light" : "bg-white";
+    private string GetBackgroundCss2(string name) => Visibles.Contains(name) ? "bg-secondary" : "bg-white border-bottom";
+    private string GetRound(double value) => value.ToString("0.00");
+    private string GetRound3(double value) => value.ToString("0.000");
+
+    private void SetVisible(string name)
+    {
+        if (Visibles.Contains(name))
+        {
+            Visibles.Remove(name);
+        }
+        else
+        {
+            Visibles.Add(name);
+        }
+    }
+
+    private string GetIconCss2(string name) => Visibles2.Contains(name) ? "flaticon2-up" : "flaticon2-down";
+    private string GetVisibleCss2(string name) => Visibles2.Contains(name) ? "d-block" : "d-none";
+
+    private void SetVisible2(string name)
+    {
+        if (Visibles2.Contains(name))
+        {
+            Visibles2.Remove(name);
+        }
+        else
+        {
+            Visibles2.Add(name);
+        }
+    }
+}

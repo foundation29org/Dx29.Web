@@ -1,0 +1,64 @@
+﻿@page "/DiagnosisResults/{id:int}"
+
+@attribute [AllowAnonymous]
+
+@layout BlankLayout
+
+@using System.Globalization
+
+@inject Dx29Client dx29
+@inject LocalizationService Localize
+@inject NavigationManager NavigationManager
+
+<Separator />
+
+<Card IsLoading="IsLoading">
+    <CardIcon>
+        <i class="icon-2x flaticon2-crisp-icons text-primary"></i>
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="@Localize["Mission Diagnosis"]" Subtitle="@Localize["Results"]" />
+    </CardHeader>
+    <CardBody>
+        <div class="p-4 pb-12">
+            <div class="font-size-h4 text-center">@Localize["Challenge {0} results", Id]</div>
+            <div class="font-size-h1 text-center">@Result</div>
+        </div>
+    </CardBody>
+</Card>
+
+@code
+{
+    [Parameter]
+    public int Id { get; set; }
+
+    private string Result = null;
+    private bool IsLoading => Result == null;
+
+    private Dictionary<int, string> Results = new Dictionary<int, string>()
+{
+        { 1, "ORPHA:72" },
+        { 2, "ORPHA:324" },
+        { 3, "ORPHA:710" }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var culture = CultureInfo.CurrentCulture;
+        await Localize.SetCultureAsync(culture.Name);
+        Result = culture.Name;
+    }
+
+    protected override async void OnParametersSet()
+    {
+        if (Id >= 1 && Id <= 3)
+        {
+            var orpha = Results[Id];
+            var disease = await dx29.GetTermsAsync(orpha);
+            Result = disease[orpha].FirstOrDefault()?.Name;
+            StateHasChanged();
+            return;
+        }
+        NavigationManager.NavigateTo("/NotFound");
+    }
+}

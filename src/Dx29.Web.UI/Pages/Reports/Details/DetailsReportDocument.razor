@@ -1,0 +1,55 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+<Dropdown Caption="@Localize["Filter Annotations"]">
+    <CheckboxList SelectAllText="@Localize["Select All"]" Items="SelectedTerms" OnChange="OnChange"></CheckboxList>
+</Dropdown>
+
+<div class="mt-6 border shadow-sm">
+    <div class="m-4 px-8 py-10">
+        <DocView Segments="Annotations?.Segments" SelectedTerms="SelectedTerms"></DocView>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public DocAnnotations Annotations { get; set; }
+
+    private IList<SelectableItem> SelectedTerms = null;
+
+    protected override void OnParametersSet()
+    {
+        var dicTerms = Annotations.Segments.SelectMany(r => r.Annotations).Select(r => r.Category).Where(r => r != null).Distinct().OrderBy(r => r).ToDictionary(r => r);
+        foreach (var key in dicTerms.Keys)
+        {
+            dicTerms[key] = Localize[key];
+        }
+        var terms = SelectableItem.CreateList(dicTerms);
+        TrySelectItems(terms, "SymptomOrSign", "Diagnosis", "Gene");
+        SelectedTerms = terms.OrderBy(r => r.Name).OrderByDescending(r => r.Selected).ToList();
+    }
+
+    private void TrySelectItems(IList<SelectableItem> terms, params string[] ids)
+    {
+        foreach (var id in ids)
+        {
+            TrySelectItem(terms, id);
+        }
+    }
+
+    private void TrySelectItem(IList<SelectableItem> terms, string id)
+    {
+        var item = terms.Where(r => r.Id == id).FirstOrDefault();
+        if (item != null)
+        {
+            item.Selected = true;
+        }
+    }
+
+    private void OnChange()
+    {
+        StateHasChanged();
+    }
+}

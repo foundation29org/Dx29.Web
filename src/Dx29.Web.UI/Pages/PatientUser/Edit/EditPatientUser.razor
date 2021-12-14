@@ -1,0 +1,112 @@
+﻿@page "/EditPatient/{caseId}"
+
+@attribute [Authorize(Roles = "Patient")]
+
+@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+@if (Model == null)
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="text-muted">@Localize["Loading..."]</div>
+        </div>
+    </div>
+}
+else
+{
+    <Wizard LabelPrevious="@Localize["Previous"]" LabelNext="@Localize["Next"]" LabelFinish="@Localize["Finish"]" OnNavigation="OnNavigation" OnFinish="OnFinish">
+        <WizardSteps>
+            <WizardStep Position="0">
+                <Icon>
+                    <i class="icon-xl flaticon2-user"></i>
+                </Icon>
+                <Label>
+                    <h3 class="wizard-title">@Localize["Patient Data"]</h3>
+                    <div class="wizard-desc">@Localize["Edit patient personal data"]</div>
+                </Label>
+            </WizardStep>
+            <WizardStep Position="1">
+                <Icon>
+                    <i class="icon-xl flaticon2-list-2"></i>
+                </Icon>
+                <Label>
+                    <h3 class="wizard-title">@Localize["Summary"]</h3>
+                    <div class="wizard-desc">@Localize["Review and commit"]</div>
+                </Label>
+            </WizardStep>
+        </WizardSteps>
+
+        <WizardStepContents>
+            <WizardStepContent Position="0">
+                <EditPatientUserStep1 Model="Model" @ref="step1" />
+            </WizardStepContent>
+            <WizardStepContent Position="1">
+                <EditPatientUserStep2 Model="Model" @ref="step2" />
+            </WizardStepContent>
+        </WizardStepContents>
+    </Wizard>
+}
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Saving patient, please wait..."]" />
+
+<SyncDialogConfirm @ref="DialogConfirm" Title="@Localize["Are you sure?"]">
+    <h5>@Localize["You are going to update patient with unknown gender."]</h5>
+    <p></p>
+</SyncDialogConfirm>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private DialogBusy DialogBusy;
+    private SyncDialogConfirm DialogConfirm;
+
+    private PatientInfoModel Model = null;
+
+    private EditPatientUserStep1 step1;
+    private EditPatientUserStep2 step2;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var mcase = await dx29.GetPatientAsync(CaseId);
+        Model = mcase.PatientInfo;
+    }
+
+    private async Task OnNavigation(WizardNavigationArgs args)
+    {
+        if (args.CurrentIndex == 0)
+        {
+            args.Cancel = !step1.Validate();
+            if (!args.Cancel)
+            {
+                if (step1.IsSelectedGenderUnknown())
+                {
+                    if (!(await DialogConfirm.OpenAsync()))
+                    {
+                        args.Cancel = true;
+                    }
+                }
+            }
+        }
+        if ((!args.Cancel) && (args.NewIndex == 1))
+        {
+            await step2.Refresh();
+        }
+    }
+
+    private async Task OnFinish()
+    {
+        await DialogBusy.OpenAsync();
+
+        await dx29.UpdatePatientAsync(CaseId, Model);
+
+        await DialogBusy.CloseAsync();
+
+        NavigationManager.NavigateTo($"/Dashboard/{CaseId}");
+    }
+}

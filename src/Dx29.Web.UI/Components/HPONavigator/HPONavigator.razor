@@ -1,0 +1,190 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject Dx29Client dx29
+@inject LocalizationService Localize
+
+<Card IsLoading="IsLoading">
+    <CardBack>
+        <CardBackNavigation @ref="BackNavigation" TItem="Term" OnBack="OnBack" />
+    </CardBack>
+    <CardHeader>
+        <CardTitle Title="@TermSubject" Subtitle="@Subtitle" CssSubtitle="@CssSubtitle" />
+    </CardHeader>
+    <CardToolbar>
+        @if (IsSelected)
+        {
+            <button class="btn btn-sm btn-danger" @onclick="OnRemove">
+                <i class="icon-sm flaticon2-line"></i>
+                <span>@Localize["Remove this symptom"]</span>
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-sm btn-primary" @onclick="OnAdd">
+                <i class="icon-sm flaticon2-add-1"></i>
+                <span>@Localize["Add this symptom"]</span>
+            </button>
+        }
+    </CardToolbar>
+    <CardBody>
+        <hr class="mt-0" />
+        <div class="row pb-4">
+            <div class="col-lg-8 border-1 border-right">
+                <div class="font-size-h6 mb-2">@Term.Desc</div>
+                <HPOGroup Caption="ID" Item="@Term.Id" />
+                <HPOGroup Caption="@Localize["Synonyms"]" Item="@Term.GetSynonyms()" />
+                <HPOGroup Caption="@Localize["Comment"]" Item="@Term.Comment" />
+                <HPOGroup Caption="PubMed" Item="@Term.GetPubMeds()" />
+            </div>
+            <div class="col-lg-4">
+                <div class="px-4 pb-4">
+                    <h5>@Localize["Hierarchy"]</h5>
+                    <HPOHierarchy Term="Term" OnItemClick="OnItemClick" />
+                </div>
+            </div>
+        </div>
+    </CardBody>
+    <CardFooter>
+        @if (AddedItems != null && AddedItems.Count > 0)
+        {
+            <div class="border-1 border-top">
+                <div class="px-8 py-6 bg-light-o-40">
+                    <h5>@Localize["Added symptoms"]</h5>
+                    @foreach (var item in AddedItems)
+                    {
+                        <div>
+                            <a href="#" class="font-size-h6" @onclick="() => OnItemClick(item.Key)" @onclick:preventDefault>@item.Value.Name</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        @if (RemovedItems != null && RemovedItems.Count > 0)
+        {
+            <div class="border-1 border-top">
+                <div class="px-8 py-6 bg-light-o-40">
+                    <h5>@Localize["Removed symptoms"]</h5>
+                    @foreach (var item in RemovedItems)
+                    {
+                        <div>
+                            <a href="#" class="font-size-h6" @onclick="() => OnItemClick(item.Key)" @onclick:preventDefault>@item.Value.Name</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </CardFooter>
+</Card>
+
+@code
+{
+    private CardBackNavigation<Term> BackNavigation = null;
+
+    private Term Term = null;
+
+    private bool IsLoading => Term == null;
+
+    private List<string> SelectedItems = null;
+
+    public Dictionary<string, Term> AddedItems = null;
+    public Dictionary<string, Term> RemovedItems = null;
+
+    private string TermSubject => Term?.Name ?? Localize["Loading..."];
+
+    private string Subtitle => IsSelected ? Localize["Selected"] : Localize["Unselected"];
+    private string CssSubtitle => IsSelected ? "font-weight-bolder text-selected" : "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var terms = await dx29.GetHpoTermsAsync("HP:0000008");
+        if (terms != null)
+        {
+            var term = terms.Values?.FirstOrDefault()?.FirstOrDefault();
+            Initialize(term, new List<string>());
+        }
+    }
+
+    public void Initialize(Term term, List<string> selectedItems)
+    {
+        Term = term;
+        SelectedItems = selectedItems;
+        AddedItems = new Dictionary<string, Term>(StringComparer.OrdinalIgnoreCase);
+        RemovedItems = new Dictionary<string, Term>(StringComparer.OrdinalIgnoreCase);
+        BackNavigation.Initialize();
+        BackNavigation.Next(Term);
+        StateHasChanged();
+    }
+
+    private async Task OnItemClick(string id)
+    {
+        await NavigateToTermAsync(id);
+    }
+
+    private async Task NavigateToTermAsync(string id)
+    {
+        if (id != null)
+        {
+            id = id.ToUpper();
+            if (id != Term?.Id)
+            {
+                var terms = await dx29.GetHpoTermsAsync(id);
+                if (terms != null)
+                {
+                    Term = terms.Values?.FirstOrDefault()?.FirstOrDefault();
+                    BackNavigation.Next(Term);
+                }
+            }
+        }
+    }
+
+    private bool IsSelected
+    {
+        get
+        {
+            if (SelectedItems != null && SelectedItems.Contains(Term?.Id, StringComparer.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            if (AddedItems != null && AddedItems.ContainsKey(Term?.Id))
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private void OnAdd()
+    {
+        if (RemovedItems.ContainsKey(Term.Id))
+        {
+            RemovedItems.Remove(Term.Id);
+            SelectedItems.Add(Term.Id);
+        }
+        else
+        {
+            AddedItems[Term.Id] = Term;
+        }
+    }
+
+    private void OnRemove()
+    {
+        if (SelectedItems.Contains(Term.Id, StringComparer.OrdinalIgnoreCase))
+        {
+            SelectedItems.Remove(Term.Id.ToUpper());
+            RemovedItems[Term.Id] = Term;
+        }
+        else if (AddedItems.ContainsKey(Term.Id))
+        {
+            AddedItems.Remove(Term.Id);
+        }
+    }
+
+    private void OnBack(Term term)
+    {
+        Term = term;
+    }
+
+    private void OnClose()
+    {
+    }
+}

@@ -1,0 +1,121 @@
+﻿@page "/Patients"
+
+@attribute [Authorize(Roles = "Physician")]
+
+@inherits Page
+
+@inject Dx29Client dx29
+
+<Card CssClassBody="min-h-100px" IsLoading="IsLoading">
+    <CardIcon>
+        <KnownIcon Name="Patients" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="@Localize["Patients"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardToolbar>
+        <ButtonAdd Text="@Localize["Add Patient"]" OnClick="() => NavigateTo(AddNewHRef)" />
+    </CardToolbar>
+    <CardBody>
+        <DataTable CssClass="compact table-hover" IsEmpty="IsEmpty">
+            <DataTableEmpty>
+                <p>@Localize["No patients found"]</p>
+            </DataTableEmpty>
+            <DataTableHeader>
+                <THR>
+                    <th></th>
+                    <th class="w-30px"></th>
+                    <th>@Localize["Patient"]</th>
+                    <th>@Localize["Age"]</th>
+                    <th>@Localize["Symptoms"]</th>
+                    <th>@Localize["Reports"]</th>
+                    <th>@Localize["Genotype"]</th>
+                    <th>@Localize["Created On"]</th>
+                    <th>@Localize["Last Update"]</th>
+                    <th></th>
+                    <th></th>
+                </THR>
+            </DataTableHeader>
+            <DataTableBody>
+                <Repeater Items="Items" Context="item">
+                    <TRClick OnClick="() => OnItemClick(item)">
+                        <TD><ShareStatus Status="@item.Status" /></TD>
+                        <TD CssClass="pl-0">
+                            <PatientIcon Gender="@item.PatientInfo.Gender" />
+                        </TD>
+                        <TDTextLabel Text="@item.PatientInfo.Name" Label="@Localize[item.PatientInfo.Gender]" />
+                        <TDTextLabel Text="@Localize.AsAge(item.PatientInfo.BirthDate)" Label="@Localize.ToShortDateString(item.PatientInfo.BirthDate)" IsEmpty="@(item.PatientInfo.BirthDate == null)" />
+                        <TDTextLabel Text="@item.SymptomsCount.ToString()" Label="@Localize["Symptoms"]" />
+                        <TDTextLabel Text="@item.PhenotypeReportsCount.ToString()" Label="@Localize["Reports"]" />
+                        <TDTextLabel Text="@item.GenotypeReportsCount.ToString()" Label="@Localize["Genotype"]" />
+                        <TDTextLabel Text="@Localize.AsElapsedTime(item.CreatedOn)" Label="@Localize.ToShortDateString(item.CreatedOn)" />
+                        <TDTextLabel Text="@Localize.AsElapsedTime(item.UpdatedOn)" Label="@Localize.ToShortDateString(item.UpdatedOn)" />
+                        <TDButton CssClass="btn-light-primary w-100px" Text="@Localize["Edit"]" OnClick="() => OnEdit(item)">
+                            <i class="icon-nm flaticon2-edit"></i>
+                        </TDButton>
+                        <TDButton CssClass="btn-light-danger w-100px" Text="@Localize["Delete"]" OnClick="() => OnDelete(item)">
+                            <i class="icon-nm flaticon2-cross"></i>
+                        </TDButton>
+                    </TRClick>
+                </Repeater>
+            </DataTableBody>
+        </DataTable>
+    </CardBody>
+</Card>
+
+<DialogConfirm @ref="Dialog" Title="@Localize["Confirm Delete Patient"]" OnAccept="OnConfirmDelete">
+    <h5>@Localize["Are you sure you want to delete patient '{0}'?", Current?.PatientInfo?.Name]</h5>
+    <p></p>
+</DialogConfirm>
+
+@code
+{
+    private DialogConfirm Dialog;
+
+    private IList<PatientModel> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private bool IsEmpty => Items?.Count == 0;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0} patients", Items.Count];
+
+    private PatientModel Current = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.CurrentCase = null;
+        await LoadItemsAsync();
+    }
+
+    public async Task LoadItemsAsync()
+    {
+        var model = await dx29.GetPatientsAsync();
+        Items = model.OrderByDescending(r => r.UpdatedOn).ToList();
+    }
+
+    private void OnItemClick(PatientModel item)
+    {
+        AppState.CurrentCase = item;
+        NavigateTo($"/Dashboard/{item.Id}");
+    }
+
+    private void OnEdit(PatientModel item)
+    {
+        NavigationManager.NavigateTo($"Patients/Edit/{item.Id}");
+    }
+
+    private void OnDelete(PatientModel item)
+    {
+        Current = item;
+        Dialog.Open();
+    }
+    private async void OnConfirmDelete()
+    {
+        await dx29.DeletePatientAsync(Current.Id);
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private string AddNewHRef => $"/Patients/AddNew?no-track";
+}

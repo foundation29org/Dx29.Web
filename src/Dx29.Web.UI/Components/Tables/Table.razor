@@ -1,0 +1,22 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<table class="table @CssClass">
+    <thead>
+        @TableHeader
+    </thead>
+    <tbody>
+        @TableBody
+    </tbody>
+</table>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public RenderFragment TableHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment TableBody { get; set; }
+}

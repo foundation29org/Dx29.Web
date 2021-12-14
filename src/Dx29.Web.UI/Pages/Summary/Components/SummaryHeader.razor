@@ -1,0 +1,46 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject LocalizationService Localize
+
+<div class="d-flex justify-content-between">
+    <div class="d-block">
+        <div class="pb-2">
+            <div class="font-size-h4 font-weight-bolder @CssTitle">@Title</div>
+            @if (IsLoading)
+            {
+                <div class="font-size-sm opa-75">@Localize["Loading..."]</div>
+            }
+            else if (Subtitle != null)
+            {
+                <div class="font-size-sm opa-75 mr-12 @CssSubtitle">@Subtitle</div>
+            }
+        </div>
+    </div>
+    <div class="d-block">
+        @if (!IsLoading)
+        {
+            @Toolbar
+        }
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string CssTitle { get; set; }
+
+    [Parameter]
+    public string Subtitle { get; set; }
+
+    [Parameter]
+    public string CssSubtitle { get; set; }
+
+    [Parameter]
+    public RenderFragment Toolbar { get; set; }
+}

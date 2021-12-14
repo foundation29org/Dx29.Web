@@ -1,0 +1,56 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@if (Term?.Categories != null)
+{
+    @foreach (var item in Term.Categories.OrderBy(r => r.Name))
+    {
+        <a href="#" class="font-size-h6" @onclick="() => OnItemClickHandler(item.Id)" @onclick:preventDefault>@item.Name</a>
+    }
+}
+
+<div class="pl-8">
+    <h5>...</h5>
+</div>
+
+@if (Term?.Parents != null)
+{
+    @foreach (var item in Term.Parents.OrderBy(r => r.Name))
+    {
+        <div class="pl-8">
+            <a href="#" class="font-size-h6" @onclick="() => OnItemClickHandler(item.Id)" @onclick:preventDefault>@item.Name</a>
+        </div>
+    }
+}
+
+<div style="@height"></div>
+
+<div class="pl-16">
+    <div class="d-inline-block font-size-h5 mb-1">@Term.Name</div>
+</div>
+
+@if (Term?.Children != null)
+{
+    @foreach (var item in Term.Children.OrderBy(r => r.Name))
+    {
+        <div class="pl-24">
+            <span class="label label-dot label-info opa-75 mr-2"></span>
+            <a href="#" class="font-size-h6" @onclick="() => OnItemClickHandler(item.Id)" @onclick:preventDefault>@item.Name</a>
+        </div>
+    }
+}
+
+@code
+{
+    string height = "height: 1em";
+
+    [Parameter]
+    public Term Term { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnItemClick { get; set; }
+
+    private void OnItemClickHandler(string id)
+    {
+        OnItemClick.InvokeAsync(id);
+    }
+}

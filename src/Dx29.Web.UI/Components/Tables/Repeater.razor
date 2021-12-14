@@ -1,0 +1,20 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@typeparam TItem
+
+@if (Items != null)
+{
+    @foreach (var item in Items)
+    {
+        @ChildContent(item)
+    }
+}
+
+@code
+{
+    [Parameter]
+    public IList<TItem> Items { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> ChildContent { get; set; }
+}

@@ -1,0 +1,11 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="@CssClass"></div>
+
+@code
+{
+    [Parameter]
+    public int H { get; set; } = 3;
+
+    private string CssClass => $"py-{H}";
+}

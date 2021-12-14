@@ -1,0 +1,105 @@
+﻿@page "/Reports/{caseId}/{reportId}"
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<Card IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" ConfirmBackNavigationAsync="OnConfirmBackNavigationAsync" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Reports" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Reports"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardToolbar>
+        <ButtonSave Text="@Localize["Save and Exit"]" OnClick="OnSave" />
+    </CardToolbar>
+    <CardBody>
+        <Tab>
+            <TabItems>
+                <TabItem HRef="#symptoms-annotations" Active="true">
+                    <Caption>@Localize["Symptoms"]</Caption>
+                </TabItem>
+                <TabItem HRef="#document-annotations">
+                    <Caption>@Localize["Document"]</Caption>
+                </TabItem>
+            </TabItems>
+            <TabItemContents>
+                <TabItemContent Id="symptoms-annotations" Active="true">
+                    <Separator />
+                    <DetailsReportAnnotations @ref="DetailsView" Annotations="Annotations" Items="Items" />
+                </TabItemContent>
+                <TabItemContent Id="document-annotations">
+                    <Separator />
+                    <DetailsReportDocument Annotations="TAAnnotations" />
+                </TabItemContent>
+            </TabItemContents>
+        </Tab>
+    </CardBody>
+</Card>
+
+<SyncDialogConfirm @ref="DialogConfirm" Title="@Localize["Save changes?"]">
+    <h5>@Localize["You made some changes to the list of symptoms. Do you want to save changes?"]</h5>
+    <p></p>
+</SyncDialogConfirm>
+
+@code
+{
+    [Parameter]
+    public string ReportId { get; set; }
+
+    private SyncDialogConfirm DialogConfirm;
+
+    private DetailsReportAnnotations DetailsView;
+
+    private DocAnnotations TAAnnotations { get; set; }
+    private DocAnnotations Annotations { get; set; }
+
+    private IList<SymptomDesc> Items = null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Found {0} symptoms", Items.Count];
+
+    public bool IsLoading => Items == null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var docAnnotations = await dx29.GetAnnotationsAsync(CaseId, ReportId);
+        TAAnnotations = docAnnotations.FirstOrDefault();
+        Annotations = docAnnotations.Skip(1).FirstOrDefault();
+
+        var symptoms = await dx29.GetSymptomsDescAsync(CaseId, ReportId);
+        Items = symptoms.Where(r => r.Categories != null).ToList();
+    }
+
+    private async Task OnSave()
+    {
+        await dx29.UpsertSymptomsAsync(CaseId, Items);
+        await NotifyChangesAsync();
+        GoBack(BackHRef);
+    }
+
+    private async Task NotifyChangesAsync()
+    {
+        var patient = await dx29.GetPatientAsync(CaseId);
+        MessageServices.Send(SymptomsHub.Instance, "SymptomsUpdate", patient);
+    }
+
+    private async Task<bool> OnConfirmBackNavigationAsync()
+    {
+        if (DetailsView?.IsDirty == true)
+        {
+            if (await DialogConfirm.OpenAsync())
+            {
+                await OnSave();
+            }
+            DetailsView.IsDirty = false;
+        }
+        return await Task.FromResult(true);
+    }
+
+    private string BackHRef => $"/Reports/{CaseId}";
+}

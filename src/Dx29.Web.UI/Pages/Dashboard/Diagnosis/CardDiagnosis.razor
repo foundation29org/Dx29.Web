@@ -1,0 +1,77 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<DashboardCard CssClassBody="min-h-50px max-h-100px" Name="Diagnosis" Title="@Localize["Diseases"]" Subtitle="@TotalCount" HRef="@HRef" IsLoading="IsLoading">
+    <DisclaimerDiagnosis IsVisible="ShowDisclaimer" />
+    <DataTable CssClass="compact">
+        <DataTableBody>
+            <Repeater Items="Items" Context="item">
+                @{
+                    //(var patientSymptoms, var diseaseSymptoms, var matchSymptoms, var patientPercent, var diseasePercent) = item.SymptomsMatch();
+                    //(var na, var nb, var nc) = item.SymptomsVenn();
+                }
+                <tr>
+                    <TDIcon>
+                        <KnownIcon Name="Diagnosis" Type="Item" />
+                    </TDIcon>
+                    <TDText Text="@item.Name" />
+                    @*<TD CssClass="px-4 py-0" Style="width: 25%">
+                        <div class="progress" style="height: 8px">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: @($"{nb}%")" aria-valuenow="@(nb)" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress-bar bg-danger opa-75" role="progressbar" style="width: @($"{na}%")" aria-valuenow="@(na)" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </TD>*@
+                </tr>
+            </Repeater>
+        </DataTableBody>
+    </DataTable>
+</DashboardCard>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private IList<DiffDisease> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private bool ShowDisclaimer => Items?.Count > 0;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] :
+        Items.Count == 0 ? Localize["No results to show"] : Localize["Showing top {0} diseases", Items.Count];
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadItemsAsync();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var items = await dx29.GetLastAnalysisAsync(CaseId, 5);
+        Items = items
+            .OrderByDescending(r => r.Symptoms.Where(r => r.HasPatient && r.HasDisease).Count())
+            .OrderByDescending(r => r.ScoreDx29)
+            .OrderByDescending(r => r.HasGenes())
+            .ToArray();
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+
+    private string HRef => $"/Diagnosis/{CaseId}";
+}

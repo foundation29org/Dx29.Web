@@ -1,0 +1,62 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+<h3>@Localize["Select key symptoms"]</h3>
+<h5 class="mb-12 text-black-50">@Localize["Review and confirm key symptoms for data analysis"]</h5>
+
+@if (Items == null)
+{
+    <h4 class="opa-75">@Localize["Loading..."]</h4>
+}
+else
+{
+    <DataTable CssClass="compact">
+        <DataTableBody>
+            <Repeater Items="Items" Context="item">
+                <tr>
+                    <TD CssClass="w-40px">
+                        <label class="checkbox">
+                            <input type="checkbox" @bind="@item.IsKeySymptom" />
+                            <span></span>
+                        </label>
+                    </TD>
+                    <TDTextLabel Text="@item.Name" Label="@GetSymptomDesc(item)" />
+                </tr>
+            </Repeater>
+        </DataTableBody>
+    </DataTable>
+}
+
+<DialogOk @ref="Dialog" Title="@Localize["Not enought key symptoms"]">
+    <h6>@Localize["Not enough key symptoms for a data analysis."]</h6>
+    <p>@Localize["Please, select 1 or more key symptoms to proceed."]</p>
+    <p></p>
+</DialogOk>
+
+@code
+{
+    [Parameter]
+    public IList<SymptomDesc> Items { get; set; }
+
+    private int SelectionCount => Items.Count(r => r.IsKeySymptom);
+
+    private DialogOk Dialog = null;
+
+    private string GetSymptomDesc(SymptomDesc item)
+    {
+        return String.IsNullOrEmpty(item.Desc) ? Localize["(No description)"] : item.Desc;
+    }
+
+    public bool Validate()
+    {
+        if (SelectionCount > 0)
+        {
+            return true;
+        }
+        Dialog.Open();
+        return false;
+    }
+}

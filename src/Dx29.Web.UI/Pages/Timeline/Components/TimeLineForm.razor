@@ -1,0 +1,39 @@
+﻿@namespace Dx29.Data
+@inject TimelineService TimelineTransform
+
+@if (ItemsForm != null)
+{
+    @foreach (var item in ItemsForm)
+    {
+        <TimeLineFormItem FormItem="item" OnChange="()=> ChangeHandler()" />
+        <Separator H="2" />
+    }
+}
+
+@code {
+
+    [Parameter]
+    public SymptomTimeline Items { get; set; }
+
+    [Parameter]
+    public IList<SymptomTimelineItem> ItemsForm { get; set; } = null;
+
+    [Parameter]
+    public EventCallback<SymptomTimeline> OnChange { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var itemsForm = TimelineTransform.TrasformForm(Items);
+        if (itemsForm?.Count > 0)
+        {
+            ItemsForm = itemsForm;
+        }
+    }
+
+    private async void ChangeHandler()
+    {
+        Items = TimelineTransform.TransformFormToSymptomTimeline(ItemsForm);
+        StateHasChanged();
+        await OnChange.InvokeAsync(Items);
+    }
+}

@@ -1,0 +1,40 @@
+﻿@page "/Dashboard"
+
+@inherits Page
+
+@inject Dx29Client dx29
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var cases = await dx29.GetPatientsAsync();
+        var current = cases.OrderBy(r => r.CreatedOn).FirstOrDefault();
+        if (current != null)
+        {
+            NavigationManager.NavigateTo($"/Dashboard/{current.Id}");
+            return;
+        }
+
+        var user = (await AuthenticationState).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            if (user.IsInRole("Patient"))
+            {
+                NavigationManager.NavigateTo("/NewPatient?no-track");
+            }
+            else if (user.IsInRole("Physician"))
+            {
+                NavigationManager.NavigateTo("/Patients");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/NotAuthorized");
+            }
+        }
+    }
+}

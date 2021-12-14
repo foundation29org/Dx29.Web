@@ -1,0 +1,105 @@
+﻿@namespace Dx29.Data
+
+@inject TimelineService TimelineTransform
+@inject LocalizationService Localize
+
+@if (ItemsTimeline != null)
+{
+    <div class="timeline timeline-justified timeline-4">
+        <div class="timeline-bar"></div>
+        <div class="timeline-items">
+            @foreach (var item in ItemsTimeline)
+            {
+                <div class="timeline-item">
+                    <div class="timeline-badge">
+                        <i class="flaticon-calendar-3 icon-md text-primary"></i>
+                    </div>
+                    <div class="timeline-label">
+                        @if (item.Header != "null")
+                        {
+                            <div class="font-size-h5 text-primary font-weight-bold">@item.Header</div>
+                        }
+                        else
+                        {
+                            <div class="font-size-h5 text-primary font-weight-bold">@Localize["Onset date unknown"]</div>
+                        }
+
+                    </div>
+                    @foreach (var box in item.Boxes)
+                    {
+                        <TimeLineBox Box="box" />
+                        <Separator H="2" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<br />
+
+@if (ItemsTimelineNull != null)
+{
+    <div class="timeline timeline-justified timeline-4">
+        <div class="timeline-bar"></div>
+        <div class="timeline-items">
+            @foreach (var item in ItemsTimelineNull)
+            {
+                <div class="timeline-item">
+                    <div class="timeline-badge">
+                        <i class="flaticon-calendar-3 icon-md text-primary"></i>
+                    </div>
+                    <div class="timeline-label">
+                        @if (item.Header != "null")
+                        {
+                            <div class="font-size-h5 text-primary font-weight-bold">@item.Header</div>
+                        }
+                        else
+                        {
+                            <div class="font-size-h5 text-primary font-weight-bold">@Localize["Onset date unknown"]</div>
+                        }
+                    </div>
+                    @foreach (var box in item.Boxes)
+                    {
+                        <TimeLineBox Box="box" />
+                        <Separator H="2" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+@code
+{
+    [Parameter]
+    public SymptomTimeline Items { get; set; }
+
+    private IList<TimelineInfo> ItemsTimeline { get; set; } = null;
+
+    private IList<TimelineInfo> ItemsTimelineNull { get; set; } = null;
+
+    protected override void OnInitialized()
+    {
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ItemsTimeline = null;
+        var itemsTimeline = TimelineTransform.TransformTimeline(Items);
+        if (itemsTimeline?.Count > 0)
+        {
+            ItemsTimeline = itemsTimeline;
+        }
+
+        ItemsTimelineNull = null;
+        var itemsTimelineNull = TimelineTransform.TransformTimelineNull(Items);
+        if (itemsTimelineNull?.Count > 0)
+        {
+            ItemsTimelineNull = itemsTimelineNull;
+        }
+
+        StateHasChanged();
+        await base.OnParametersSetAsync();
+    }
+
+}

@@ -1,0 +1,60 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@typeparam TItem
+
+@if (Items != null)
+{
+    @if (Items.Count == 0)
+    {
+        @ZeroItemsMessage
+    }
+    else
+    {
+        <table class="table @CssClass">
+            <thead>
+                <tr class="text-left text-uppercase">
+                    @HeaderTemplate
+                </tr>
+            </thead>
+            @if (Items != null)
+            {
+                <tbody>
+                    @foreach (var item in Items)
+                    {
+                        @RowTemplate(item)
+                        @RowHiddenTemplate(item)
+                    }
+                </tbody>
+            }
+        </table>
+    }
+}
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public IList<TItem> Items { get; set; }
+
+    [Parameter]
+    public RenderFragment HeaderTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> RowTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> RowHiddenTemplate { get; set; }
+
+    [Parameter]
+    public EventCallback<TItem> OnItemClick { get; set; }
+
+    [Parameter]
+    public RenderFragment ZeroItemsMessage { get; set; }
+
+    private void ItemClickHandler(TItem item)
+    {
+        OnItemClick.InvokeAsync(item);
+    }
+}

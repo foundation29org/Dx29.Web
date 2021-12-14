@@ -1,0 +1,14 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="text-right">
+    <button type="button" class="btn btn-primary min-w-100px mr-4" data-dismiss="modal" @onclick="OnAccept">@Accept</button>
+</div>
+
+@code
+{
+    [Parameter]
+    public string Accept { get; set; } = "Accept";
+
+    [Parameter]
+    public EventCallback OnAccept { get; set; }
+}

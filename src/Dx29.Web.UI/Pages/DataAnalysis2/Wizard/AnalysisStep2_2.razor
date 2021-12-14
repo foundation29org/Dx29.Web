@@ -1,0 +1,33 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+<h3>@Localize["Summary"]</h3>
+<h5 class="mb-6 text-black-50">@Localize["Review selection and commit"]</h5>
+
+<div class="font-size-h6 font-italic">@Localize["You are about to execute a new data analysis with the following information:"]</div>
+
+<div class="form-group row my-2">
+    <label class="col-3 col-form-label">@Localize["Symptoms:"]</label>
+    <div class="col-9 pt-3">
+        @if (Items != null)
+        {
+            foreach (var item in SelectedItems)
+            {
+                <div class="form-control-plaintext font-weight-bolder p-0 m-0 text-truncate-1">@item.Name</div>
+            }
+        }
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public IList<SymptomDesc> Items { get; set; }
+
+    private IList<SymptomDesc> SelectedItems => Items.Where(r => r.IsKeySymptom).ToArray();
+
+    public void Refresh()
+    {
+    }
+}

@@ -1,0 +1,284 @@
+﻿@page "/Summary/{caseId}/{ViewName?}"
+
+@using System.Security.Claims
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<Card>
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" ConfirmBackNavigationAsync="OnConfirmBackNavigationAsync" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Summary" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Data Explorer"]" />
+    </CardHeader>
+    <CardToolbar>
+        <a class="btn btn-clean font-weight-bold" href="@BackHRef">
+            <i class="icon-lg flaticon2-layers text-primary"></i>
+            <span class="font-size-h5 text-primary">@Localize["Dashboard"]</span>
+        </a>
+    </CardToolbar>
+    <CardBody>
+        <div class="mx-2 mb-8">
+            <p>@Localize["Explore your symptoms and medical information and find matching diseases."]</p>
+        </div>
+        <NavigationView>
+            <NavigationItems>
+                <NavigationSection Caption="@Localize["Symptoms"]" Items="SymptomItems" Context="item">
+                    <NavigationSectionTemplate>
+                        <NavigationSectionItem Caption="@item" Status="Ready" IsActive="IsSymptomsActive" OnClick="() => OnSymptomClick()">
+                            <Icon>
+                                <i class="icon-md fas fa-hand-holding-medical text-danger"></i>
+                            </Icon>
+                        </NavigationSectionItem>
+                    </NavigationSectionTemplate>
+                </NavigationSection>
+
+                <NavigationSection Caption="@Localize["Medical Reports"]" Items="ReportItems" Context="item">
+                    <NavigationSectionTemplate>
+                        <NavigationSectionItem Caption="@item.Name" Status="@item.Status" OnClick="() => OnReportClick(item)">
+                            <Icon>
+                                <i class="icon-md flaticon2-crisp-icons text-primary"></i>
+                            </Icon>
+                        </NavigationSectionItem>
+                    </NavigationSectionTemplate>
+                    <NavigationSectionLast>
+                        <NavigationSectionItem Caption="@Localize["Add new report"]" Status="Ready" OnClick="() => OnAddNewReport()">
+                            <Icon>
+                                <i class="icon-md flaticon2-add-1 text-primary"></i>
+                            </Icon>
+                        </NavigationSectionItem>
+                    </NavigationSectionLast>
+                </NavigationSection>
+
+                <NavigationSection Caption="@Localize["Genotype"]" Items="GenotypeItems" Context="item">
+                    <NavigationSectionTemplate>
+                        <NavigationSectionItem Caption="@item.Name" Status="@item.Status" OnClick="() => OnGenotypeClick(item)">
+                            <Icon>
+                                <i class="icon-md fas fa-dna text-info"></i>
+                            </Icon>
+                        </NavigationSectionItem>
+                    </NavigationSectionTemplate>
+                    <NavigationSectionLast>
+                        <NavigationSectionItem Caption="@Localize["Add new genotype"]" Status="Ready" OnClick="() => OnAddNewGenotype()">
+                            <Icon>
+                                <i class="icon-md flaticon2-add-1 text-primary"></i>
+                            </Icon>
+                        </NavigationSectionItem>
+                    </NavigationSectionLast>
+                </NavigationSection>
+
+                <NavigationSection Caption="@Localize["Diseases"]" Items="DiseaseItems" Context="item">
+                    <NavigationSectionTemplate>
+                        <NavigationSectionItem Caption="@item" Status="Ready" IsActive="IsDiagnosisActive" OnClick="() => OnDiagnosisClick()">
+                            <Icon>
+                                <i class="icon-md flaticon2-cardiogram text-success"></i>
+                            </Icon>
+                        </NavigationSectionItem>
+                    </NavigationSectionTemplate>
+                </NavigationSection>
+            </NavigationItems>
+
+            <ViewContent>
+                @if (ViewName.EqualsNoCase("Symptoms"))
+                {
+                    <SummarySymptoms @ref="ViewSummarySymptoms" CaseId="@CaseId" CaseSummary="CaseSummary" ReportItems="ReportItems" OnUpdate="OnUpdate" />
+                }
+                else if (ViewName.EqualsNoCase("Reports"))
+                {
+                    <SummaryReports @ref="ViewSummaryReports" CaseId="@CaseId" Report="ReportMedical" OnUpdate="OnUpdate" />
+                }
+                else if (ViewName.EqualsNoCase("Genotype"))
+                {
+                    <SummaryGenotype CaseId="@CaseId" Report="ReportGenotype" />
+                }
+                else if (ViewName.EqualsNoCase("Diagnosis"))
+                {
+                    <SummaryDiagnosis CaseId="@CaseId" CaseSummary="CaseSummary" OnUpdate="OnUpdate" />
+                }
+            </ViewContent>
+        </NavigationView>
+
+    </CardBody>
+</Card>
+
+<SyncDialogConfirm @ref="DialogConfirm" Title="@Localize["Save changes?"]">
+    <h5>@Localize["You made some changes to the list of symptoms. Do you want to save changes?"]</h5>
+    <p></p>
+</SyncDialogConfirm>
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; }
+
+    [Parameter]
+    public string ViewName { get; set; }
+
+    private SummarySymptoms ViewSummarySymptoms;
+    private SummaryReports ViewSummaryReports;
+
+    private SyncDialogConfirm DialogConfirm;
+
+    private ReportModel ReportMedical = null;
+    private ReportModel ReportGenotype = null;
+
+    private IList<string> SymptomItems = null;
+    private IList<ReportModel> ReportItems = null;
+    private IList<ReportModel> GenotypeItems = null;
+    private IList<string> DiseaseItems = null;
+
+    private MedicalCaseSummary CaseSummary = null;
+
+    private bool IsSymptomsActive => ViewName.EqualsNoCase("Symptoms");
+    private bool IsDiagnosisActive => ViewName.EqualsNoCase("Diagnosis");
+
+    private ClaimsPrincipal User = null;
+
+    private bool IsDirty = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navigation.ClearNavigation();
+        SymptomItems = new string[] { Localize["All Symptoms"] };
+        DiseaseItems = new string[] { Localize["Matching diseases"] };
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadItemsAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CaseId != null)
+        {
+            await LoadItemsAsync();
+            Navigation.ClearNavigation();
+            AppState.CurrentCase = await dx29.GetPatientAsync(CaseId);
+        }
+
+        User = (await AuthenticationState).User;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (ViewName == null)
+        {
+            ViewName = "Symptoms";
+        }
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        if (ReportMedical != null)
+        {
+            ReportMedical = ReportItems.Where(r => r.Id == ReportMedical.Id).FirstOrDefault();
+        }
+        if (ReportGenotype != null)
+        {
+            ReportGenotype = GenotypeItems.Where(r => r.Id == ReportGenotype.Id).FirstOrDefault();
+        }
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        CaseSummary = await dx29.GetCaseSummaryAsync(CaseId);
+
+        var reports = await dx29.GetReportsAsync(CaseId);
+        ReportItems = reports;
+        var genotype = await dx29.GetGeneReportsAsync(CaseId);
+        GenotypeItems = genotype;
+    }
+
+    private async void OnUpdate()
+    {
+        CaseSummary = await dx29.GetCaseSummaryAsync(CaseId);
+    }
+
+    //
+    // Navigation
+    //
+    private async Task OnSymptomClick()
+    {
+        await EnsureSaveChangesAsync();
+        ViewName = "Symptoms";
+        NavigateTo($"/Summary/{CaseId}/Symptoms");
+    }
+
+    private async Task OnReportClick(ReportModel model)
+    {
+        await EnsureSaveChangesAsync();
+        ReportMedical = model;
+        ViewName = "Reports";
+    }
+
+    private async Task OnAddNewReport()
+    {
+        await EnsureSaveChangesAsync();
+        NavigateTo(AddNewReportHRef);
+    }
+
+    private async Task OnGenotypeClick(ReportModel model)
+    {
+        await EnsureSaveChangesAsync();
+        ReportGenotype = model;
+        ViewName = "Genotype";
+    }
+
+    private async Task OnAddNewGenotype()
+    {
+        await EnsureSaveChangesAsync();
+        NavigateTo(AddNewGenotypeHRef);
+    }
+
+    private async Task OnDiagnosisClick()
+    {
+        await EnsureSaveChangesAsync();
+        ViewName = "Diagnosis";
+        NavigateTo($"/Summary/{CaseId}/Diagnosis");
+    }
+    //
+    //  End Navigation
+    //
+
+    private async Task EnsureSaveChangesAsync()
+    {
+        if (ViewSummarySymptoms?.IsDirty == true)
+        {
+            if (await DialogConfirm.OpenAsync())
+            {
+                await ViewSummarySymptoms.SaveChangesAsync();
+            }
+            ViewSummarySymptoms.IsDirty = false;
+        }
+        else if (ViewSummaryReports?.IsDirty == true)
+        {
+            if (await DialogConfirm.OpenAsync())
+            {
+                await ViewSummaryReports.SaveChangesAsync();
+            }
+            ViewSummaryReports.IsDirty = false;
+        }
+    }
+
+    private async Task<bool> OnConfirmBackNavigationAsync()
+    {
+        await EnsureSaveChangesAsync();
+        return await Task.FromResult(true);
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+    private string AddNewReportHRef => $"/Reports/AddNew/{CaseId}?no-track";
+    private string AddNewGenotypeHRef => $"/Genotype/AddNew/{CaseId}?no-track";
+}

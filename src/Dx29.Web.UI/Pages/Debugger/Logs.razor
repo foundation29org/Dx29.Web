@@ -1,0 +1,57 @@
+﻿@page "/Logs"
+
+@attribute [Authorize(Roles = ROLES)]
+
+@inject ILogService LogService
+
+<div class="row">
+    <div class="col">
+        <div class="text-right">
+            <button class="btn btn-primary" @onclick="OnRefreshAsync">Refresh</button>
+            <span>&nbsp;</span>
+            <button class="btn btn-danger" @onclick="OnClearAsync">Clear</button>
+        </div>
+        <hr />
+        @if (Items != null)
+        {
+            foreach (var item in Items)
+            {
+                <div>@item.DateTime.ToString("HH:mm:ss.ff")</div>
+                <div>@item.Message</div>
+                <pre>@item.Description</pre>
+            }
+        }
+    </div>
+</div>
+
+@code
+{
+    private List<LogItem> Items = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    private async Task OnRefreshAsync()
+    {
+        await RefreshAsync();
+    }
+
+    private async Task OnClearAsync()
+    {
+        await LogService.ClearAsync();
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        Items = await LogService.GetLogsAsync(50);
+    }
+
+#if DEBUG
+    const string ROLES = "User";
+#else
+    const string ROLES = "Admin";
+#endif
+}

@@ -1,0 +1,17 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<button class="btn @CssClass" @onclick="OnClick" @onclick:stopPropagation>
+    @ChildContent
+</button>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

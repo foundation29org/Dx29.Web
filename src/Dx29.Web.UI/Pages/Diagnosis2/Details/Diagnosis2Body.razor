@@ -1,0 +1,130 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+@if ((SelectedDisease != null) && (!_loading))
+{
+    <div class="row">
+        @if (OnEdit == true)
+        {
+            <div class="col-xl-12 text-center mb-4">
+                <!-- Un boton de cancelar para volver a atras a ver la suya -->
+                <ButtonIcon Text="@Localize["Save as diagnosed disease and Exit"]" OnClick="() => OnValueChangedAsync()" CssClass="min-w-160p">
+                    <Icon><i class="icon-lg far fa-save"></i></Icon>
+                </ButtonIcon>
+            </div>
+        }
+        <div class="col-xl-12">
+            <h5 class="text-truncate-1 font-weight-bolder m-0">@SelectedDisease.Name</h5>
+            <div class="text-sm-left text-black-50 mt-4">@SelectedDisease.Id</div>
+            <div class="text-sm-left">@SelectedDisease.Desc</div>
+        </div>
+        <div class="col-xl-12 pt-4">
+            <Tab>
+                <TabItems>
+                    <TabItem HRef="#symptoms" Active="true">
+                        <Caption>@Localize["Symptoms"]</Caption>
+                    </TabItem>
+                    <TabItem HRef="#more-info">
+                        <Caption>@Localize["More information"]</Caption>
+                    </TabItem>
+                    <TabItem HRef="#clinical-trials">
+                        <Caption>@Localize["Clinical trials"]</Caption>
+                    </TabItem>
+                    <TabItem HRef="#patient-groups">
+                        <Caption>@Localize["Patient groups"]</Caption>
+                    </TabItem>
+                    @if (HasGenes)
+                    {
+                        <TabItem HRef="#genes">
+                            <Caption>@Localize["Genes"]</Caption>
+                        </TabItem>
+                    }
+                </TabItems>
+                <TabItemContents>
+                    <TabItemContent Id="symptoms" Active="true">
+                        <Diagnosis2Symptoms CaseId="@CaseId" SelectedDiseaseId="@SelectedDisease.Id" SelectedDiseaseName="@SelectedDisease.Name" />
+                    </TabItemContent>
+                    <TabItemContent Id="more-info">
+                        <Diagnosis2MoreInfo CaseId="@CaseId" SelectedDiseaseId="@SelectedDisease.Id" SelectedDiseaseName="@SelectedDisease.Name" />
+                    </TabItemContent>
+                    <TabItemContent Id="clinical-trials">
+                        <Diagnosis2ClinicalTrials CaseId="@CaseId" SelectedDiseaseId="@SelectedDisease.Id" SelectedDiseaseName="@SelectedDisease.Name" />
+                    </TabItemContent>
+                    <TabItemContent Id="patient-groups">
+                        <Diagnosis2PatientGroups CaseId="@CaseId" SelectedDiseaseId="@SelectedDisease.Id" SelectedDiseaseName="@SelectedDisease.Name" />
+                    </TabItemContent>
+                    @if (HasGenes)
+                    {
+                        <TabItemContent Id="genes">
+                            <Diagnosis2Genes CaseId="@CaseId" SelectedDiseaseId="@SelectedDisease.Id" SelectedDiseaseName="@SelectedDisease.Name" />
+                        </TabItemContent>
+                    }
+                </TabItemContents>
+            </Tab>
+        </div>
+    </div>
+}
+else if (_loading)
+{
+    <div class="col-xl-12 my-8">
+        <div class="d-flex flex-column align-items-center w-100">
+            <Spinner CssClass="spinner-xl" />
+        </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public MedicalCaseSummary CaseSummary { get; set; } = null;
+
+    [Parameter]
+    public TermDesc SelectedDisease { get; set; }
+
+    [Parameter]
+    public bool OnEdit { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<string> DiseaseChanged { get; set; }
+
+    private bool _loading = false;
+    private bool HasGenes = false;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        // Hay resultados de analisis + hay ficheros de genotipo
+        if (CaseSummary.IsDataAnalysisEmpty() == false)
+        {
+            var genotypeFiles = await dx29.GetGeneReportsAsync(CaseId);
+            if ((genotypeFiles != null)&&(genotypeFiles?.Count>0))
+            {
+                HasGenes = true;
+            }
+            else
+            {
+                HasGenes = false;
+            }
+        }
+        else
+        {
+            HasGenes = false;
+        }
+        _loading = false;
+    }
+
+    public async Task OnValueChangedAsync()
+    {
+        if (SelectedDisease != null)
+        {
+            await DiseaseChanged.InvokeAsync(SelectedDisease.Id);
+        }
+    }
+}

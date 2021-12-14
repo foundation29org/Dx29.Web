@@ -1,0 +1,16 @@
+﻿@page
+
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Dx29.Web
+@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+
+@model Dx29.Web.Pages.AgreementModel
+
+@{
+    ViewData["Title"] = @SharedLocalizer["Data processing by Dx29"];
+}
+<h1>@ViewData["Title"]</h1>
+
+
+@Html.Raw(Model.DataAgreement.Replace("\r\n", ""))
+

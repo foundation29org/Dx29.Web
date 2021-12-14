@@ -1,0 +1,118 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+
+<h3>@Localize["Proband"]</h3>
+<h4 class="mb-6 text-black-50">@Localize["Select the affected individual"]</h4>
+
+<div class="font-size-h6 font-italic">@Localize["Here is the list of individuals identified in the VCF that you have provided us. Please tell us who is affected one or proband."]</div>
+
+<div class="d-flex flex-column align-items-center pt-6">
+    <div class="px-8 w-100">
+        @if (Items != null)
+        {
+            @if (Items.Count > 0)
+            {
+                <form method="post">
+                    @foreach (string item in Items)
+                    {
+                        <input type="radio" name="Proband" value="@item" @onchange="(e) => ChangeHandler(e)" /> <span></span> @item <br />
+                    }
+                </form>
+                @if (probandRequired)
+                {
+                    <div class="mt-2 text-danger">
+                        <p> @Localize["You must select the affected individual."] </p>
+                    </div>
+                }
+            }
+            else
+            {
+                @if (loading)
+                {
+                    <div class="font-size-sm opa-75">@Localize["Loading..."]</div>
+                }
+                else
+                {
+                    <p> @Localize["Please, upload one VCF."] </p>
+                }
+
+            }
+        }
+        else
+        {
+            <p> @Localize["Please, upload one VCF."] </p>
+        }
+
+    </div>
+</div>
+
+
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    public string Proband { get; set; }
+    private FileItem ItemVCF { get; set; }
+    private List<string> Items = new List<string>();
+    private bool probandRequired = false;
+    private bool loading = false;
+
+    public async void Refresh(FileItem itemVCF, bool updated)
+    {
+        if (updated)
+        {
+            loading = true;
+            Items.RemoveAll(r => true);
+            ItemVCF = null;
+            Proband = null;
+            probandRequired = true;
+
+            StateHasChanged();
+
+            if (itemVCF != null)
+            {
+                ItemVCF = itemVCF;
+                Items = await dx29.GetIndividualsAsync(CaseId, ItemVCF);
+
+            }
+            loading = false;
+            StateHasChanged();
+        }
+        else
+        {
+            if (Proband == null)
+            {
+                probandRequired = true;
+                StateHasChanged();
+            }
+        }
+
+    }
+
+    private void ChangeHandler(ChangeEventArgs args)
+    {
+        Proband = (string)args.Value;
+        if (Proband != null)
+        {
+            probandRequired = false;
+        }
+        StateHasChanged();
+    }
+
+    public string GetProband()
+    {
+        return Proband;
+    }
+
+    public bool Validate()
+    {
+        return (Proband != null);
+    }
+
+}

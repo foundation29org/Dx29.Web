@@ -1,0 +1,59 @@
+﻿@page
+@model LoginModel
+
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Dx29.Web
+
+@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+
+@{
+    ViewData["Title"] = SharedLocalizer["Log in"];
+}
+
+<div class="row">
+    <div class="offset-3 col-6">
+        <section>
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+            <form id="account" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="Input.Email"></label>
+                    <input asp-for="Input.Email" class="form-control" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.Password"></label>
+                    <div style="display: flex; align-items: center;">
+                        <input asp-for="Input.Password" autocomplete="nope" class="form-control" id="password" />
+                        <button id="button-password" class="btn" type="button">
+                            <i id="icon-password" class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label asp-for="Input.RememberMe">
+                            <input asp-for="Input.RememberMe" />
+                            @Html.DisplayNameFor(m => m.Input.RememberMe)
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">@SharedLocalizer["Log in"]</button>
+                </div>
+                <div class="form-group">
+                    <p><a id="forgot-password" asp-page="./ForgotPassword">@SharedLocalizer["Forgot your password?"]</a></p>
+                    <p>
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">@SharedLocalizer["Register as a new user"]</a>
+                    </p>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,34 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<td class="@CssClass" style="width: 32px">
+    @if (Status.EqualsNoCase("Busy"))
+    {
+        <div class="p-1 pl-2">
+            <Spinner CssClass="spinner-xl" />
+        </div>
+    }
+    else if (Status.EqualsNoCase("Canceled"))
+    {
+        <div class="icon-xl flaticon2-information text-danger p-0 pl-1"></div>
+    }
+    else if (Status.EqualsNoCase("Error"))
+    {
+        <div class="icon-xl flaticon2-warning text-danger p-0 pl-1"></div>
+    }
+    else
+    {
+        <DocIcon Extension="@Extension" Size="32" />
+    }
+</td>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string Status { get; set; }
+
+    [Parameter]
+    public string Extension { get; set; } = ".doc";
+}

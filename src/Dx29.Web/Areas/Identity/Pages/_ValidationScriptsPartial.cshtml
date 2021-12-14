@@ -1,0 +1,317 @@
+﻿<environment include="Development">
+    <script src="~/Identity/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/Identity/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script type="text/javascript">
+        // password validation
+        $.validator.addMethod("passwordSpecial",
+            function (value, element, parameters) {
+                if (value.match(/[^a-zA-Z\d]/g)) {
+                    return true;
+                }
+                return false;
+            });
+        $.validator.addMethod("passwordDigit",
+            function (value, element, parameters) {
+                if (value.match(/[0-9]/g)) {
+                    return true;
+                }
+                return false;
+            });
+
+        $.validator.addMethod("passwordUpper",
+            function (value, element, parameters) {
+                if (value.match(/[A-Z]/g)) {
+                    return true;
+                }
+                return false;
+            });
+        $.validator.addMethod("passwordLower",
+            function (value, element, parameters) {
+                if (value.match(/[a-z]/g)) {
+                    return true;
+                }
+                return false;
+            });
+        $.validator.addMethod("passwordLenght",
+            function (value, element, parameters) {
+                var minLenght = 6;
+                var maxLength = 100;
+                if ((value.length > minLenght) && (value.length < maxLength)) {
+                    return true;
+                }
+                return false;
+            });
+
+        $.validator.unobtrusive.adapters.add("passwordSpecial",
+            [],
+            function (options) {
+                options.rules.passwordSpecial = {};
+                options.messages["passwordSpecial"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordDigit",
+            [],
+            function (options) {
+                options.rules.passwordDigit = {};
+                options.messages["passwordDigit"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordUpper",
+            [],
+            function (options) {
+                options.rules.passwordUpper = {};
+                options.messages["passwordUpper"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordLower",
+            [],
+            function (options) {
+                options.rules.passwordLower = {};
+                options.messages["passwordLower"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordLenght",
+            [],
+            function (options) {
+                options.rules.passwordLenght = {};
+                options.messages["passwordLenght"] = options.message;
+            });
+    </script>
+
+    <script type="text/javascript">
+        $(function () {
+            $('#button-password').click(function (e) {
+                var className = $('#icon-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#password').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#password').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-password").attr('class', newClassName);
+            })
+
+            $('#button-confirm-password').click(function (e) {
+                var className = $('#icon-confirm-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#confirmPassword').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#confirmPassword').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-confirm-password").attr('class', newClassName);
+            })
+
+            $('#button-old-password').click(function (e) {
+                var className = $('#icon-old-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#oldPassword').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#oldPassword').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-old-password").attr('class', newClassName);
+            })
+
+            $('#button-new-password').click(function (e) {
+                var className = $('#icon-new-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#newPassword').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#newPassword').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-new-password").attr('class', newClassName);
+            })
+        });
+    </script>
+
+</environment>
+<environment exclude="Development">
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.17.0/jquery.validate.min.js"
+            asp-fallback-src="~/Identity/lib/jquery-validation/dist/jquery.validate.min.js"
+            asp-fallback-test="window.jQuery && window.jQuery.validator"
+            crossorigin="anonymous"
+            integrity="sha384-rZfj/ogBloos6wzLGpPkkOr/gpkBNLZ6b6yLy4o+ok+t/SAKlL5mvXLr0OXNi1Hp">
+    </script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validation.unobtrusive/3.2.9/jquery.validate.unobtrusive.min.js"
+            asp-fallback-src="~/Identity/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"
+            asp-fallback-test="window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive"
+            crossorigin="anonymous"
+            integrity="sha384-ifv0TYDWxBHzvAk2Z0n8R434FL1Rlv/Av18DXE43N/1rvHyOG4izKst0f2iSLdds">
+    </script>
+
+    <script type="text/javascript">
+        // password validation
+        $.validator.addMethod("passwordSpecial",
+            function (value, element, parameters) {
+                if (value.match(/[^a-zA-Z\d]/g)) {
+                    return true;
+                }
+                return false;
+            });
+        $.validator.addMethod("passwordDigit",
+            function (value, element, parameters) {
+                if (value.match(/[0-9]/g)) {
+                    return true;
+                }
+                return false;
+            });
+
+        $.validator.addMethod("passwordUpper",
+            function (value, element, parameters) {
+                if (value.match(/[A-Z]/g)) {
+                    return true;
+                }
+                return false;
+            });
+        $.validator.addMethod("passwordLower",
+            function (value, element, parameters) {
+                if (value.match(/[a-z]/g)) {
+                    return true;
+                }
+                return false;
+            });
+        $.validator.addMethod("passwordLenght",
+            function (value, element, parameters) {
+                var minLenght = 6;
+                var maxLength = 100;
+                if ((value.length > minLenght) && (value.length < maxLength)) {
+                    return true;
+                }
+                return false;
+            });
+
+        $.validator.unobtrusive.adapters.add("passwordSpecial",
+            [],
+            function (options) {
+                options.rules.passwordSpecial = {};
+                options.messages["passwordSpecial"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordDigit",
+            [],
+            function (options) {
+                options.rules.passwordDigit = {};
+                options.messages["passwordDigit"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordUpper",
+            [],
+            function (options) {
+                options.rules.passwordUpper = {};
+                options.messages["passwordUpper"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordLower",
+            [],
+            function (options) {
+                options.rules.passwordLower = {};
+                options.messages["passwordLower"] = options.message;
+            });
+        $.validator.unobtrusive.adapters.add("passwordLenght",
+            [],
+            function (options) {
+                options.rules.passwordLenght = {};
+                options.messages["passwordLenght"] = options.message;
+            });
+
+    </script>
+
+    <script type="text/javascript">
+        $(function () {
+            $('#button-password').click(function (e) {
+                var className = $('#icon-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#password').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#password').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-password").attr('class', newClassName);
+            })
+
+            $('#button-confirm-password').click(function (e) {
+                var className = $('#icon-confirm-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#confirmPassword').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#confirmPassword').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-confirm-password").attr('class', newClassName);
+            })
+
+            $('#button-old-password').click(function (e) {
+                var className = $('#icon-old-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#oldPassword').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#oldPassword').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-old-password").attr('class', newClassName);
+            })
+
+            $('#button-new-password').click(function (e) {
+                var className = $('#icon-new-password').attr('class');
+                var newClassName = "";
+                if (className == "fa fa-eye") {
+                    newClassName = "fa fa-eye-slash";
+                    $('#newPassword').attr({
+                        'type': 'text'
+                    });
+                }
+                else {
+                    newClassName = "fa fa-eye";
+                    $('#newPassword').attr({
+                        'type': 'password'
+                    });
+                }
+                $("#icon-new-password").attr('class', newClassName);
+            })
+        });
+    </script>
+</environment>

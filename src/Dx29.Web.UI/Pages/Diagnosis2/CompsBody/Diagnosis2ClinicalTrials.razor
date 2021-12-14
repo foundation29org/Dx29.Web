@@ -1,0 +1,134 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+<div class="row p-4">
+    @if ((ClinicalTrials != null) && (ClinicalTrials?.FullStudiesResponse.FullStudies.Count > 0) && (!_loading))
+    {
+        <Repeater Items="@ClinicalTrials.FullStudiesResponse.FullStudies" Context="study">
+            <div class="col-xl-12">
+                <span class="font-weight-bolder">Id</span>
+                <br />
+                <a href="@study.Study.ProtocolSection.IdentificationModule.NCTIdLink" target="_blank">@study.Study.ProtocolSection.IdentificationModule.NCTId</a>
+            </div>
+            <div class="col-xl-12 mt-2">
+                <span class="font-weight-bolder">@Localize["Name of the center where it is performed"]</span>
+                <br />
+                <span>@study.Study.ProtocolSection.IdentificationModule.Organization.OrgFullName</span>
+            </div>
+            <div class="col-xl-12 mt-2">
+                <span class="font-weight-bolder">@Localize["Short description"]</span>
+                <br />
+                <span>@study.Study.ProtocolSection.IdentificationModule.BriefTitle</span>
+            </div>
+            <div class="col-xl-12 mt-2">
+                <span class="font-weight-bolder">@Localize["Start of the study"]</span>
+                <br />
+                <span>@study.Study.ProtocolSection.StatusModule.StudyFirstSubmitDate</span>
+            </div>
+
+            @if (study.Study.ProtocolSection.SponsorCollaboratorsModule.ResponsibleParty.ResponsiblePartyInvestigatorFullName != null)
+            {
+                <div class="col-xl-12 mt-2">
+                    <span class="font-weight-bolder">@Localize["Name of the PI (Principal Investigator)"]</span>
+                    <br />
+                    <span>@study.Study.ProtocolSection.SponsorCollaboratorsModule.ResponsibleParty.ResponsiblePartyInvestigatorFullName</span>
+                </div>
+            }
+            @if (study.Study.ProtocolSection.ContactsLocationsModule != null)
+            {
+                if (study.Study.ProtocolSection.ContactsLocationsModule.LocationList?.Location.Count > 0)
+                {
+                    <div class="col-xl-12 mt-2">
+                        <span class="font-weight-bolder">@Localize["Country"]</span>
+                        <br />
+                        <Repeater Items="@study.Study.ProtocolSection.ContactsLocationsModule.LocationList.Location" Context="country">
+                            <span>@country.LocationCountry</span>
+                            <br />
+                        </Repeater>
+                    </div>
+                }
+
+                if (study.Study.ProtocolSection.ContactsLocationsModule.CentralContactList?.CentralContact.Count > 0)
+                {
+                    <div class="col-xl-12 mt-1">
+                        <span class="font-weight-bolder">@Localize["Contact"]</span>
+                        <br />
+                        <Repeater Items="@study.Study.ProtocolSection.ContactsLocationsModule.CentralContactList.CentralContact" Context="contact">
+                            <span> @contact.CentralContactName @("<")<a href='mailto:{{contact.CentralContactEMail}}'>@contact.CentralContactEMail</a>@(">")</span>
+                            <br />
+                        </Repeater>
+                    </div>
+                }
+            }
+            <div class="col-xl-12 my-2">
+                <hr />
+            </div>
+        </Repeater>
+    }
+    else if (_loading)
+    {
+        <div class="col-xl-12 my-4">
+            <div class="d-flex flex-column align-items-center w-100">
+                <Spinner CssClass="spinner-xl" />
+            </div>
+        </div>
+    }
+    else if(SelectedDiseaseName!=null)
+    {
+        <div class="col-xl-12">
+            <span>@Localize["Sorry, at this time we do not have clinical trial data data for {0}. I you can provide information, contact us here", SelectedDiseaseName]</span>
+        </div>
+        <div class="col-xl-12 text-center mt-4">
+            <ButtonIcon Text="@Localize["Contact"]" OnClick="() => OnContactAsync()" CssClass="min-w-160p">
+                <Icon><i class="icon-lg  flaticon-email"></i></Icon>
+            </ButtonIcon>
+        </div>
+    }
+
+</div>
+
+<DialogSendEmailSupport @ref="DialogSendEmail" Dx29Section="@Localize["Disease resources HUB"]" Subject=@Localize["Clinical trials"] Info="@InfoSupport"></DialogSendEmailSupport>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseName { get; set; }
+
+    private ClinicalTrials ClinicalTrials = null;
+
+    private bool _loading = false;
+
+    private DialogSendEmailSupport DialogSendEmail;
+    private SupportInfoEmail InfoSupport = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        InfoSupport = null;
+        ClinicalTrials = await dx29.GetClinicalTrialsASync(SelectedDiseaseId);
+        await base.OnParametersSetAsync();
+        _loading = false;
+    }
+
+    private async Task OnContactAsync()
+    {
+        SetInfoSupport();
+        await DialogSendEmail.OpenAsync();
+    }
+    private void SetInfoSupport()
+    {
+        InfoSupport = new SupportInfoEmail();
+        InfoSupport.Add("Selected disease", SelectedDiseaseName);
+        InfoSupport.Add("Selected disease Id", SelectedDiseaseId);
+    }
+
+}

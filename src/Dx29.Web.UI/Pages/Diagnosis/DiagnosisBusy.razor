@@ -1,0 +1,40 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+<Card>
+    <CardBody>
+        <div class="mt-12">
+            @if (Summary.IsReportsBusy() || Summary.IsGenotypeBusy())
+            {
+                if (Summary.IsReportsBusy())
+                {
+                    <div class="py-2 d-flex">
+                        <div class="spinner spinner-track spinner-primary spinner-xl"></div>
+                        <div class="font-size-h6 pl-10">@Localize["Analysing Medical Reports and extracting symptoms, please wait..."]</div>
+                    </div>
+                }
+                if (Summary.IsGenotypeBusy())
+                {
+                    <div class="py-2 d-flex">
+                        <div class="spinner spinner-track spinner-primary spinner-xl"></div>
+                        <div class="font-size-h6 pl-10">@Localize["Processing Genotype reports and extracting gene variants, please wait..."]</div>
+                    </div>
+                }
+            }
+            else if (Summary.IsDataAnalysisBusy() || !Summary.IsDataAnalysisUpToDate())
+            {
+                <div class="py-2 d-flex">
+                    <div class="spinner spinner-track spinner-primary spinner-xl"></div>
+                    <div class="font-size-h6 pl-10">@Localize["Executing Data Analysis, please wait..."]</div>
+                </div>
+            }
+        </div>
+    </CardBody>
+</Card>
+
+@code
+{
+    [Parameter]
+    public MedicalCaseSummary Summary { get; set; }
+}

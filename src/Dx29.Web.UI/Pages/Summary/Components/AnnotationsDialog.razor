@@ -1,0 +1,96 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject Dx29Client dx29
+
+<Modal CssClassModal="modal-xl" IsCloseVisible="!IsLoading" @ref="Dialog">
+    <ModalContent>
+        <Card IsLoading="IsLoading">
+            <CardHeader>
+                <CardTitle IsLoading="IsLoading" Title="@Symptom?.Name" Subtitle="@Symptom?.Desc" />
+            </CardHeader>
+            <CardBody>
+                <hr />
+                <div class="p-4">
+                    <DocView Segments="Segments" SelectedTerms="SelectedTerms" Term="@Symptom.Id" />
+                </div>
+            </CardBody>
+        </Card>
+    </ModalContent>
+    <ModalFooter>
+        <div class="p-4">
+            @if (Segments != null)
+            {
+                <ModalAccept Accept="Ok" />
+            }
+        </div>
+    </ModalFooter>
+</Modal>
+
+@code
+{
+    private Modal Dialog;
+
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private IList<SegAnnotations> Segments = null;
+
+    private bool IsLoading => Segments == null;
+
+    private SymptomDesc Symptom = null;
+
+    private readonly IList<SelectableItem> SelectedTerms = SelectableItem.CreateList(true, "Symptom");
+
+    public async Task OpenAsync(SymptomDesc symptom)
+    {
+        Symptom = symptom;
+        Segments = null;
+        var task = GetSegmentAnnotations(CaseId, symptom);
+        if (task.Wait(250))
+        {
+            StateHasChanged();
+            Segments = await task;
+            await Dialog.OpenAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            StateHasChanged();
+            await Dialog.OpenAsync();
+            Segments = await task;
+            StateHasChanged();
+        }
+    }
+
+    public void Close() => Dialog.Close();
+    public async Task CloseAsync() => await Dialog.CloseAsync();
+
+    private async Task<IList<SegAnnotations>> GetSegmentAnnotations(string caseId, SymptomDesc symptom)
+    {
+        var segAnnotations = new List<SegAnnotations>();
+        foreach (var source in symptom.Sources)
+        {
+            if (source.Name != "Manual")
+            {
+                var docAnnotations = await GetDocAnnotationsAsync(CaseId, source.Name);
+                foreach (var segment in source.Segments)
+                {
+                    segAnnotations.AddRange(docAnnotations.Segments.Where(r => r.Id == segment));
+                }
+            }
+        }
+        return segAnnotations;
+    }
+
+    private Dictionary<string, DocAnnotations> DocAnnotationsCache = new Dictionary<string, DocAnnotations>();
+
+    private async Task<DocAnnotations> GetDocAnnotationsAsync(string caseId, string resourceId)
+    {
+        if (!DocAnnotationsCache.ContainsKey(resourceId))
+        {
+            var docAnnotations = (await dx29.GetAnnotationsAsync(caseId, resourceId)).Last();
+            DocAnnotationsCache[resourceId] = docAnnotations;
+        }
+        return DocAnnotationsCache[resourceId];
+    }
+}

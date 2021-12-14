@@ -1,0 +1,132 @@
+﻿@page "/MultisampleVCF/{caseId}"
+@inherits PageCase
+
+@inject Dx29Client dx29
+
+<Wizard LabelPrevious="@Localize["Previous"]" LabelNext="@Localize["Next"]" LabelFinish="@Localize["Finish"]" OnNavigation="OnNavigation" OnClose="OnClose" OnFinish="OnFinish">
+    <WizardSteps>
+        <WizardStep Position="0">
+            <Icon>
+                <i class="icon-xl fas fa-dna"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Upload Genotype"]</h3>
+                <div class="wizard-desc">@Localize["Add multisample genotype: VCF + PED"]</div>
+            </Label>
+        </WizardStep>
+        <WizardStep Position="1">
+            <Icon>
+                <i class="icon-xl far fa-check-circle"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Proband"]</h3>
+                <div class="wizard-desc">@Localize["Select the affected individual"]</div>
+            </Label>
+        </WizardStep>
+        <WizardStep Position="2">
+            <Icon>
+                <i class="icon-xl flaticon2-list-2"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Summary"]</h3>
+                <div class="wizard-desc">@Localize["Review and commit"]</div>
+            </Label>
+        </WizardStep>
+    </WizardSteps>
+
+    <WizardStepContents>
+        <WizardStepContent Position="0">
+            <AddMultisampleStep1 FileItems="FileItems" @ref="step1" />
+        </WizardStepContent>
+        <WizardStepContent Position="1">
+            <AddMultisampleStep2 CaseId="@CaseId" @ref="step2" />
+        </WizardStepContent>
+        <WizardStepContent Position="2">
+            <AddMultisampleStep3 Files="FilesReady" Proband="@Proband" @ref="step3" />
+        </WizardStepContent>
+    </WizardStepContents>
+</Wizard>
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Updating genotype data, please wait..."]" />
+<DialogOk @ref="DialogKO" Title="@Localize["Incorrect values"]">
+    <p>@Localize["The analysis cannot be carried out due to:"] </p>
+    <ul>
+        @if (ItemVCF == null)
+        {
+            <li>@Localize["You must provide a VCF file."]</li>
+        }
+        @if (ItemPED == null)
+        {
+            <li>@Localize["You must provide a PED file."]</li>
+        }
+        @if (Proband == null)
+        {
+            <li>@Localize["You must select the proband or affected individual."]</li>
+        }
+    </ul>
+</DialogOk>
+@code
+{
+    private DialogBusy DialogBusy;
+    private DialogOk DialogKO;
+
+    private AddMultisampleStep1 step1;
+    private AddMultisampleStep2 step2;
+    private AddMultisampleStep3 step3;
+
+    private Dictionary<string, FileItem> FileItems = new Dictionary<string, FileItem>();
+    private IList<FileItem> FilesReady => FileItems.Values.Where(r => r.IsReady).ToArray();
+    private FileItem ItemVCF => (FileItems.Values.Where(r => (r.Name.ToLower().Contains(".vcf") && (r.IsReady) && (r.Status != "Deleted") && (r.Status != "Canceled"))).FirstOrDefault());
+    private FileItem PreviousItemVCF = null;
+    private FileItem ItemPED => (FileItems.Values.Where(r => (r.Name.ToLower().Contains(".ped") && (r.IsReady) && (r.Status != "Deleted") && (r.Status != "Canceled"))).FirstOrDefault());
+    private string Proband;
+    private bool updated;
+
+
+    private void OnNavigation(WizardNavigationArgs args)
+    {
+        if (args.CurrentIndex == 0)
+        {
+            args.Cancel = !step1.Validate();
+        }
+        else if ((args.CurrentIndex == 1) && (args.NewIndex > 1))
+        {
+            args.Cancel = !step2.Validate();
+        }
+
+        if (args.NewIndex == 1)
+        {
+            updated = (PreviousItemVCF != ItemVCF);
+            step2.Refresh(ItemVCF, updated);
+            PreviousItemVCF = ItemVCF;
+        }
+
+        else if (args.NewIndex == 2)
+        {
+            Proband = step2.GetProband();
+            step3.Refresh(Proband);
+        }
+    }
+
+    private void OnClose()
+    {
+        NavigationManager.NavigateTo($"/Dashboard/{CaseId}");
+    }
+
+    private async Task OnFinish()
+    {
+        if ((ItemVCF != null) && (ItemPED != null) && (Proband != null))
+        {
+            // Launch Exomiser with VCF+PED and selected PROBAND
+            await DialogBusy.OpenAsync();
+            var status = await dx29.ProcessGenotypePedAsync(CaseId, ItemVCF, ItemPED, Proband);
+            await DialogBusy.CloseAsync();
+            NavigationManager.NavigateTo($"/Genotype/{CaseId}");
+        }
+        else
+        {
+            await DialogKO.OpenAsync();
+        }
+    }
+}
+

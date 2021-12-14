@@ -1,0 +1,30 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@inject ILogService Log
+@inject LocalizationService Localize
+@inject NotificationService Notifications
+@inject Dx29Client dx29
+@inject AppState AppState
+
+@if (Ready)
+{
+    @ChildContent
+}
+
+@code
+{
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private bool Ready = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Notifications.InitializeAsync();
+        var preferences = await dx29.GetPreferencesAsync();
+        AppState.UserName = preferences.UserName;
+        await Localize.SetCultureAsync(preferences.Language);
+        await Log.InfoAsync($"SessionStartup", preferences.Serialize());
+        Ready = true;
+    }
+}

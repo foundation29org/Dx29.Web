@@ -1,0 +1,207 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@inherits ComponentEx
+@inject IJSRuntime JSRuntime
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+@inject TimelineService TimelineTransform
+
+<div class="subheader py-2 py-lg-4 subheader-solid @Opacity">
+    <div class="container pt-4 d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <DataTable CssClass="compact">
+            <DataTableBody>
+                <Repeater Items="Items" Context="item">
+                    <tr>
+                        <TD CssClass="w-30px">
+                            <PatientIcon Gender="@item.PatientInfo.Gender" />
+                        </TD>
+                        <TDTextLabel Text="@item.PatientInfo.Name" Label="@Localize[item.PatientInfo.Gender]" />
+                        <TDTextLabel Text="@Localize.AsAge(item.PatientInfo.BirthDate)" Label="@Localize["Age"]" />
+                        <TDTextLabel Text="@item.SymptomsCount.ToString()" Label="@Localize["Symptoms"]" />
+                        <TDTextLabel Text="@item.PhenotypeReportsCount.ToString()" Label="@Localize["Reports"]" />
+                        <TDTextLabel CssClass="w-120px" Text="@item.GenotypeReportsCount.ToString()" Label="@Localize["Genotype"]" />
+                        <TDTextLabel Text="@Localize.AsElapsedTime(item.CreatedOn)" Label="@Localize["Created On"]" />
+                        <TDTextLabel Text="@Localize.AsElapsedTime(item.UpdatedOn)" Label="@Localize["Last Updated"]" />
+
+                        <TDButton CssClass="btn-light-primary w-100px" Text="@Localize["Edit"]" OnClick="() => OnEditCase(item)">
+                            <i class="flaticon2-edit opa-75"></i>
+                        </TDButton>
+
+                        @if (item.SymptomsCount > 0)
+                        {
+                            <TDButton CssClass="btn-light-primary w-120px" Text="@Localize["Download"]" OnClick="() => OnDownloadPDF(item)">
+                                <i class="fas fa-cloud-download-alt opa-75"></i>
+                            </TDButton>
+                        }
+
+                        @if (item.IsShared())
+                        {
+                            <TD CssClass="w-120px">
+                                <div class="d-flex">
+                                    <i class="icon-xl fas fa-share-alt text-success"></i>
+                                    <div class="ml-4 font-size-h6 font-weight-bolder text-success">@Localize["Shared"]</div>
+                                </div>
+                            </TD>
+                        }
+                        else if (item.CanBeShared())
+                        {
+                            <TD />
+                            @*<TDButton CssClass="btn-light-primary w-100px" Text="@Localize["Share"]" OnClick="OnShare">
+                                    <i class="icon-nm fas fa-share-alt"></i>
+                                </TDButton>*@
+                        }
+                    </tr>
+                </Repeater>
+            </DataTableBody>
+        </DataTable>
+    </div>
+</div>
+<DialogBusy @ref="DialogBusy" Message="@Localize["Creating the report, please wait..."]" />
+
+@*<ShareDialog @ref="Dialog" Model="ShareModel" OnAccept="OnShareAccept" />*@
+
+@code
+{
+    public PatientModel CurrentCase { get; set; }
+
+    public string Opacity => CurrentCase == null ? "opacity-1" : "";
+
+    public PatientModel[] Items { get; set; }
+
+    private IList<SymptomDesc> CaseSymptoms = null;
+
+    private List<SymptomDesc> AllItemsSymptoms = null;
+    private IList<SymptomDesc> ItemsSymptoms = null;
+
+    private string Id { get; set; }
+
+    private IList<DiffDisease> ItemsDiseases = null;
+    private IList<DiffDisease> AllItemsDiseases = null;
+
+    private DialogBusy DialogBusy;
+
+    protected override void OnInitialized()
+    {
+        MessageServices.Subscribe<AppState>(this, OnStateChanged);
+        MessageServices.Subscribe<SymptomsHub>(this, OnStateChanged);
+    }
+
+    private async void OnDownloadPDF(PatientModel item)
+    {
+        await DialogBusy.OpenAsync();
+        var lang = dx29.Language;
+        var culture = dx29.Culture;
+
+        //Get timeline
+        var timeline = await dx29.GetTimelineAsync(item.Id);
+        var timelineReport = TimelineTransform.TransformTimelineReport(timeline);
+        var dictionaryTimeline = timelineReport.DictionaryTimeline;
+        var listSymptomsNullInfo = timelineReport.listSymptomsNullInfo;
+
+        //Get Diagnosis
+        Id = await dx29.GetLastAnalysisIdAsync(item.Id);
+        string listDiseases = "";
+        if (Id != null)
+        {
+            var ItemsDiseases = await dx29.GetAnalysisAsync(item.Id, Id);
+
+            AllItemsDiseases = ItemsDiseases
+            .OrderByDescending(r => r.Symptoms.Where(r => r.HasPatient && r.HasDisease).Count())
+            .OrderByDescending(r => r.ScoreDx29)
+            .OrderByDescending(r => r.HasGenes()).ToList();
+
+            ItemsDiseases = AllItemsDiseases.Take(10).ToArray();
+            listDiseases = ItemsDiseases.Serialize(indented: true);
+        }
+
+        var translations = new
+        {
+            name = @Localize["Name"],
+            patient = @Localize["Patient"],
+            gender = @Localize[item.PatientInfo.Gender],
+            birthDate = @Localize["Age"],
+            symptoms = @Localize["Symptoms"],
+            diseases = @Localize["Proposed diagnoses"],
+            dataReport = @Localize["Data report"],
+            reportDate = @Localize["Report date"],
+            unknown = @Localize["Unknown"],
+            timeEvolution = @Localize["Time evolution"],
+            graphicTimeline = @Localize["Graphic chronology"],
+            Deprecated = @Localize["Deprecated"],
+            startAge = @Localize["Age of onset"],
+            duration = @Localize["Duration"],
+            startDate = @Localize["Start date"],
+            endDate = @Localize["End date"],
+            years = @Localize["years"],
+            year = @Localize["year"],
+            months = @Localize["months"],
+            month = @Localize["month"],
+            and = @Localize["and"],
+            lessMonth = @Localize["Less than a month"],
+            subtitlea= @Localize["subtitlea"],
+            subtitleb = @Localize["subtitleb"],
+            subtitlec= @Localize["subtitlec"],
+            subtitle1= @Localize["subtitle1"],
+            subtitle2= @Localize["subtitle2"],
+            subtitle3= @Localize["subtitle3"],
+            foundation29 = @Localize["Foundation 29"],
+            footer1 = @Localize["footer1"],
+            footer2 = @Localize["footer2"],
+            footer3 = @Localize["footer3"],
+            footer4 = @Localize["footer4"],
+            footer5 = @Localize["footer5"],
+            footer6 = @Localize["footer6"],
+            register = @Localize["Register"],
+            knowingEvolution1 = @Localize["Knowing the evolution of your symptoms helps to reach an accurate diagnosis because many times that is the difference between"],
+            knowingEvolution2 = @Localize["two similar diseases."],
+            noOnset=Localize["Onset date unknown"]
+        };
+        await DialogBusy.CloseAsync();
+        var age = @Localize.AsAge(item.PatientInfo.BirthDate);
+        var birthDate = item.PatientInfo.BirthDate;
+        await JSRuntime.InvokeVoidAsync("GeneratePDF", item.PatientInfo, listDiseases, translations, lang, culture, age, birthDate, dictionaryTimeline, listSymptomsNullInfo);
+    }
+
+    private void OnStateChanged(AppState source, string message, object args)
+    {
+        if (message == "CurrentCaseChanged")
+        {
+            CurrentCase = args as PatientModel;
+            Refresh();
+        }
+    }
+
+    private void OnStateChanged(SymptomsHub source, string message, object args)
+    {
+        if (message == "SymptomsUpdate")
+        {
+            CurrentCase = args as PatientModel;
+            Refresh();
+        }
+    }
+
+    private void Refresh()
+    {
+        if (CurrentCase != null)
+        {
+            Items = new PatientModel[] { CurrentCase };
+        }
+        else
+        {
+            Items = new PatientModel[] { };
+        }
+        StateHasChanged();
+    }
+
+    private void OnEditCase(PatientModel item)
+    {
+        NavigationManager.NavigateTo($"Edit/{item.Id}");
+    }
+
+    override public void Dispose()
+    {
+        MessageServices.Unsubscribe<SymptomsHub>(this);
+        MessageServices.Unsubscribe<AppState>(this);
+    }
+}

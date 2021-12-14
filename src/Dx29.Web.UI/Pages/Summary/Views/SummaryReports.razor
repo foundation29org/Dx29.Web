@@ -1,0 +1,168 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@using Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+@if (Report != null)
+{
+    if (IsReady)
+    {
+        <SummaryHeader Title="@Title" Subtitle="@TotalCount" IsLoading="IsLoading">
+            <Toolbar>
+                <ButtonSave Text="@Localize["Save changes"]" OnClick="OnSaveChanges" />
+            </Toolbar>
+        </SummaryHeader>
+
+        if (!IsLoading)
+        {
+            <p>@Localize["We have found the following symptoms in the document."]</p>
+            <Tab>
+                <TabItems>
+                    <TabItem HRef="#symptoms-annotations" Active="true">
+                        <Caption>@Localize["Symptoms"]</Caption>
+                    </TabItem>
+                    <TabItem HRef="#document-annotations">
+                        <Caption>@Localize["Document"]</Caption>
+                    </TabItem>
+                </TabItems>
+                <TabItemContents>
+                    <TabItemContent Id="symptoms-annotations" Active="true">
+                        <Separator />
+                        <SymptomList CaseId="@CaseId" Items="Items" IncludeRemoved="true" ShowContextMenu="false" OnChanged="OnItemsChanged" />
+                    </TabItemContent>
+                    <TabItemContent Id="document-annotations">
+                        <Separator />
+                        <DetailsReportDocument Annotations="TAAnnotations" />
+                    </TabItemContent>
+                </TabItemContents>
+            </Tab>
+        }
+
+        <DialogBusy @ref="DialogBusy" Message="@Localize["Saving changes, please wait..."]" />
+    }
+    else if (IsError)
+    {
+        <SummaryHeader Title="@Title" CssSubtitle="text-danger" Subtitle="@Localize["An error occurred while processing the document"]" />
+
+        <div class="m-4">
+            <div class="alert alert-custom alert-outline-danger fade show mb-5" role="alert">
+                <div class="alert-icon"><i class="flaticon-warning"></i></div>
+                <div class="alert-text">@Report?.ErrorDesc</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <SummaryHeader Title="@Title" Subtitle="Processing..." />
+
+        <div class="m-4">
+            <div class="alert alert-custom alert-outline-primary fade show mb-5" role="alert">
+                <Spinner CssClass="spinner-ms" />
+                <div class="alert-text ml-12">@Localize["We are processing the document. This may take several minutes, depending on the size of the documt. Please wait..."]</div>
+            </div>
+        </div>
+    }
+}
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public ReportModel Report { get; set; }
+
+    [Parameter]
+    public EventCallback OnUpdate { get; set; }
+
+    public bool IsDirty { get; set; }
+
+    private string Title => $"{Localize["Medical Report"]} - {Report?.Name}";
+
+    private DocAnnotations TAAnnotations { get; set; }
+    private DocAnnotations Annotations { get; set; }
+
+    private IList<SymptomDesc> Items = null;
+
+    private bool IsReady => Report.Status.EqualsNoCase("Ready");
+    private bool IsError => Report.Status.EqualsNoCase("Error");
+    private bool IsLoading => Items == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Found {0} symptoms", Items.Count];
+
+    private DialogBusy DialogBusy;
+
+    protected override void OnInitialized()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        base.OnInitialized();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItemsAsync();
+    }
+
+    private void OnItemsChanged()
+    {
+        StateHasChanged();
+        IsDirty = true;
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        if (Report != null)
+        {
+            if (Report.Status.EqualsNoCase("Ready"))
+            {
+                Items = null;
+                var docAnnotations = await dx29.GetAnnotationsAsync(CaseId, Report.Id);
+                TAAnnotations = docAnnotations.FirstOrDefault();
+                Annotations = docAnnotations.Skip(1).FirstOrDefault();
+
+                var symptoms = await dx29.GetSymptomsDescAsync(CaseId, Report.Id);
+                Items = symptoms.Where(r => r.Categories != null).ToList();
+            }
+        }
+        IsDirty = false;
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await OnSaveChanges();
+    }
+
+    private async Task OnSaveChanges()
+    {
+        await DialogBusy.OpenAsync();
+        await dx29.UpsertSymptomsAsync(CaseId, Items);
+        await NotifyChangesAsync();
+        await DialogBusy.CloseAsync();
+
+        await LoadItemsAsync();
+        await OnUpdate.InvokeAsync();
+    }
+
+    private async Task NotifyChangesAsync()
+    {
+        var patient = await dx29.GetPatientAsync(CaseId);
+        MessageServices.Send(SymptomsHub.Instance, "SymptomsUpdate", patient);
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+}

@@ -1,0 +1,25 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<li class="nav-item">
+    <a class="nav-link @GetActive()" data-toggle="tab" href="@HRef">
+        @*<span class="nav-icon">@Icon</span>*@
+        <span class="nav-text">@Caption</span>
+    </a>
+</li>
+
+@code
+{
+    [Parameter]
+    public RenderFragment Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment Caption { get; set; }
+
+    [Parameter]
+    public string HRef { get; set; }
+
+    [Parameter]
+    public bool Active { get; set; }
+
+    string GetActive() => Active ? "active" : "";
+}

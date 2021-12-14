@@ -1,0 +1,53 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+<div class="d-flex flex-column align-items-center">
+    <div class="pl-30 pr-40 w-100">
+        <DxTypeahead TItem="TermDesc" TValue="TermDesc" Value="SelectedTerm" SearchMethod="GetTermsAsync" ValueChanged="OnValueChangedAsync" ValueExpression="@(() => SelectedTerm)" placeholder="@Localize["Search disease (i.e: Dravet syndrome ...)"]" TextAreaRows="1">
+            <SelectedTemplate Context="term">
+                @term.Name
+            </SelectedTemplate>
+            <ResultTemplate Context="term">
+                <div style="border-bottom: solid 0px #ccc">
+                    <h6 class="text-truncate-1 font-weight-bolder m-0">@term.Name</h6>
+                    <div class="text-truncate-1 text-sm-left">@term.Desc</div>
+                </div>
+            </ResultTemplate>
+            <FooterTemplate>
+                @if (FoundTermsCount > 10)
+                {
+                    <hr class="mt-0 mb-2" />
+                    <div style="border-bottom: solid 0px #ccc">
+                        <div class="text-danger font-weight-bolder" style="padding-left: 0px; padding-bottom: 4px; font-style: italic">More than 10 results found...</div>
+                    </div>
+                }
+            </FooterTemplate>
+        </DxTypeahead>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public EventCallback<string> DiseaseChanged { get; set; }
+
+    private TermDesc SelectedTerm = null;
+    private int FoundTermsCount = 0;
+
+    private async Task<IEnumerable<TermDesc>> GetTermsAsync(string query)
+    {
+        return await dx29.SearchDiseasesAsync(query);
+    }
+
+    public async Task OnValueChangedAsync(TermDesc term)
+    {
+        if (term != null)
+        {
+            await DiseaseChanged.InvokeAsync(term.Id);
+        }
+    }
+
+}

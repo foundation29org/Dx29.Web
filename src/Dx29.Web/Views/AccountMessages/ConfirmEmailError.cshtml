@@ -1,0 +1,19 @@
+﻿@using Dx29.Web
+@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+
+@{
+    ViewData["Title"] = @SharedLocalizer["Error"];
+}
+
+<div class="row">
+    <div class="offset-3 col-6">
+        <section>
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+            <h1 class="text-danger">@SharedLocalizer["Error"]</h1>
+            <h2 class="text-danger">@SharedLocalizer["An error occurred while processing your request. Please try again later."]</h2>
+        </section>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<td>
+    <a class="btn btn-sm @CssClass" href="@HRef" download="@Filename" role="button" target="=_top">
+        @ChildContent
+        <span>&nbsp;</span>
+        <span>@Text</span>
+    </a>
+</td>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string HRef { get; set; }
+
+    [Parameter]
+    public string Filename { get; set; }
+}

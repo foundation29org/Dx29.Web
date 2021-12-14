@@ -1,0 +1,136 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+@if (Item.Genes != null)
+{
+    if (Item.Genes.Count > 0)
+    {
+        if (GeneItems != null)
+        {
+            if (GeneItems.Count > 0)
+            {
+                <div>
+                    <label class="font-weight-bolder text-uppercase">@Localize["Gene information between the patient and the disease"], <b>@Item.Name.ToUpper()</b></label>
+                    <p>@Localize["The table shows the genes present in both the patient and the reference case."]</p>
+                </div>
+                <div class="pt-2">
+                    <DetailsGenotypeView Items="@GeneItems"></DetailsGenotypeView>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="d-flex flex-column align-items-center w-100" style="margin-top: 0px">
+                <Spinner CssClass="spinner-xl" />
+            </div>
+        }
+    }
+    else
+    {
+        <p>@Localize["There is no gene information between the patient and the disease"] <b>@Item.Name.ToUpper()</b></p>
+    }
+}
+else
+{
+    <div class="d-flex flex-column align-items-center w-100" style="margin-top: 0px">
+        <Spinner CssClass="spinner-xl" />
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public DiffDisease Item { get; set; }
+
+    [Parameter]
+    public string GeneReportId { get; set; }
+
+    private List<string> SelectedGenes { get; set; } = new List<string>();
+    private List<GenotypeInfo> GeneItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var gen in Item.Genes)
+        {
+            SelectedGenes.Add(gen.Value.label);
+        }
+
+        if (SelectedGenes.Count > 0)
+        {
+            List<GenotypeInfo> GeneItemsSaved = await dx29.GetGeneResultsAsync(CaseId, GeneReportId, SelectedGenes);
+            GeneItems = DeleteDuplicates(GeneItemsSaved);
+        }
+    }
+
+    private List<GenotypeInfo> DeleteDuplicates(List<GenotypeInfo> GeneItemsTotal)
+    {
+        List<GenotypeInfo> GeneItemsTotalProcessed1 = DeleteSameGenDifferentInfo(GeneItemsTotal);
+        List<GenotypeInfo> GeneItemsTotalProcessed2 = DeleteSameGenSameInfo(GeneItemsTotalProcessed1);
+        return GeneItemsTotalProcessed2;
+
+    }
+
+    private List<GenotypeInfo> DeleteSameGenDifferentInfo(List<GenotypeInfo> GeneItemsTotal)
+    {
+        List<GenotypeInfo> itemsToDelete = new List<GenotypeInfo>();
+
+        int i = 0;
+        foreach (var gen in GeneItemsTotal)
+        {
+            int j = 0;
+            foreach (var gen2 in GeneItemsTotal)
+            {
+                if (i != j)
+                {
+                    if ((gen.Serialize(false) != gen2.Serialize(false)) && (gen2.Name == gen.Name))
+                    {
+                        if (gen.Score.Value > gen2.Score.Value)
+                        {
+                            itemsToDelete.Add(gen2);
+                        }
+                        else
+                        {
+                            itemsToDelete.Add(gen);
+                        }
+                    }
+                }
+                j++;
+            }
+            i++;
+        }
+        foreach (var gen in itemsToDelete)
+        {
+            GeneItemsTotal.Remove(gen);
+        }
+        foreach (var gen in itemsToDelete)
+        {
+            foreach (var genItem in GeneItemsTotal)
+            {
+                if (gen.Name == genItem.Name)
+                {
+
+                    foreach (var genInfo in gen.GenInfo)
+                    {
+                        if (!(genItem.GenInfo.Contains(genInfo)))
+                        {
+                            genItem.GenInfo.Add(genInfo);
+                        }
+                    }
+                }
+            }
+        }
+        return GeneItemsTotal;
+    }
+
+    private List<GenotypeInfo> DeleteSameGenSameInfo(List<GenotypeInfo> GeneItemsTotal)
+    {
+        GeneItemsTotal = GeneItemsTotal.GroupBy(x => x.Name).Select(x => x.First()).ToList();
+        return GeneItemsTotal;
+    }
+}

@@ -1,0 +1,87 @@
+﻿@page "/Reports/AddNew/{caseId}"
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+@inject IAccessTokenProvider TokenProvider
+
+<Card>
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Reports" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardClose OnClose="OnClose" />
+        <CardTitle Title="@Localize["Upload Medical Reports"]" Subtitle="@Localize["These files will be used to extract symptoms and other important information to facilitate the analysis."]" />
+    </CardHeader>
+    <CardBody>
+        <div class="mb-6"></div>
+
+        <FileUpload Url="@Url" AccessToken="@AccessToken" FileItems="FileItems" ExistingNames="ExistingNames" AcceptExtensions=".txt,.pdf,.doc,.docx,.jpg,.png" OnReadyStateChanged="OnReadyStateChanged">
+            @Localize["Click or drop files here to upload"]
+        </FileUpload>
+
+        <div class="mb-6"></div>
+        <div class="font-italic">@Localize["Supported files for medical reports are: .pdf, .doc, .docx, .jpg, .png, .txt"]</div>
+    </CardBody>
+    <CardFooter>
+        <div class="d-flex justify-content-end p-8">
+            <button class="btn btn-primary min-w-140px" disabled="@IsSendDisabled" @onclick="OnSend">@Localize["Send Files"]</button>
+        </div>
+    </CardFooter>
+</Card>
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Uploading files, please wait..."]" />
+
+@code
+{
+    private DialogBusy DialogBusy;
+
+    private Dictionary<string, FileItem> FileItems = new Dictionary<string, FileItem>();
+
+    private string Url => $"/api/v1/FileStorage/temp";
+
+    private string AccessToken;
+
+    private List<string> ExistingNames = new List<string>();
+
+    private bool IsSendDisabled = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var accessTokenResult = await TokenProvider.RequestAccessToken();
+        if (accessTokenResult.TryGetToken(out var token))
+        {
+            AccessToken = token.Value;
+            var blobFiles = await dx29.GetReportsAsync(CaseId);
+            ExistingNames = blobFiles.Select(r => r.Name).ToList();
+        }
+    }
+
+    private async Task OnSend()
+    {
+        await DialogBusy.OpenAsync();
+        foreach (var item in FileItems.Values.Where(r => r.IsReady))
+        {
+            var status = await dx29.ProcessFileAsync(CaseId, item);
+        }
+        await DialogBusy.CloseAsync();
+        await AppState.RefreshCurrentCaseAsync();
+
+        GoBack(BackHRef);
+    }
+
+    private void OnReadyStateChanged(bool isReady)
+    {
+        IsSendDisabled = !isReady;
+    }
+
+    private void OnClose()
+    {
+        GoBack(alternateUrl: BackHRef);
+    }
+
+    private string BackHRef => $"/Reports/{CaseId}";
+}

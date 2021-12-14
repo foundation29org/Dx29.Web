@@ -1,0 +1,39 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<a class="navi-link ml-0 py-1 flex-grow-1 @Active" data-toggle="tab" href="#" @onclick="OnClick">
+    @if (Status.EqualsNoCase("Ready"))
+    {
+        @Icon
+        <div class="ml-4 text-truncate-1">@Caption</div>
+    }
+    else if (Status.EqualsNoCase("Error"))
+    {
+        <div class="icon-lg flaticon2-warning text-danger"></div>
+        <div class="ml-4 text-truncate-1 text-danger">@Caption</div>
+    }
+    else
+    {
+        <Spinner CssClass="spinner-sm" Style="width: 16px; height: 24px" />
+        <div class="ml-4 text-truncate-1">@Caption</div>
+    }
+</a>
+
+@code
+{
+    [Parameter]
+    public string Caption { get; set; }
+
+    [Parameter]
+    public RenderFragment Icon { get; set; }
+
+    [Parameter]
+    public string Status { get; set; }
+
+    [Parameter]
+    public bool IsActive { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private string Active => IsActive ? "active" : "";
+}

@@ -1,0 +1,150 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+@if (PhenSimilarity != null)
+{
+    <div class="row">
+        <div class="col-xl-12">
+            <span>@Localize["Table showing patient symptoms and the symptoms present in the reference case of "] @SelectedDiseaseName</span>
+        </div>
+        <div class="col-xl-12 mt-4">
+            <DataTable>
+                <DataTableHeader>
+                    <th style="width: 70%"></th>
+                    <th style="width: 10%; text-align: center;">@Localize["Patient"]</th>
+                    <th style="width: 10%; text-align: center;">@Localize["Disease"]</th>
+                    <th style="width: 10%;"></th>
+                </DataTableHeader>
+                <DataTableBody>
+                    <Repeater Items="PhenSimilarity" Context="item">
+                        @if (item.Name != null)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="#" @onclick="()=> OnSymptomClick(item)" @onclick:preventDefault> @item.Name </a>
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (item.HasPatient)
+                                    {
+                                        <i class="icon-md flaticon2-check-mark text-success"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="icon-md flaticon2-cross text-danger opa-75"></i>
+                                    }
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (item.HasDisease)
+                                    {
+                                        <i class="icon-md flaticon2-check-mark text-success"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="icon-md flaticon2-cross text-danger opa-75"></i>
+                                    }
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (item != null)
+                                    {
+                                        string text = GetTextInfo(item);
+                                        <span style="cursor:pointer" data-toggle="tooltip" title=@text>
+                                            <i class="icon-md fas fa-info-circle text-primary opa-75"></i>
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </Repeater>
+                </DataTableBody>
+            </DataTable>
+        </div>
+    </div>
+}
+
+<HPONavigatorDialog @ref="HPONavigatorDialog" OnAccept="async()=> await OnHPOAccept()" />
+
+
+@code
+{
+
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public List<PhenSimilarity> PhenSimilarity { get; set; } = null;
+
+    [Parameter]
+    public string SelectedDiseaseName { get; set; }
+
+    [Parameter]
+    public EventCallback<HPONavigatorDialog> OnSymptomsChanged { get; set; }
+
+    private IList<Symptom> CaseSymptoms = null;
+    private HPONavigatorDialog HPONavigatorDialog;
+
+    private string GetTextInfo(PhenSimilarity item)
+    {
+        string text = "";
+        if (item.HasPatient && item.HasDisease)
+        {
+            if (item.Relationship == "Equal")
+            {
+                text = Localize["Symptom observed in the patient and the disease."];
+            }
+            else if (item.Relationship == "Successor")
+            {
+                text = Localize["Symptom deduced in the patient because they also present {0}.", item.RelatedName];
+
+            }
+            else if (item.Relationship == "Predecessor")
+            {
+                text = Localize["Symptom observed in patient and disease."];
+            }
+        }
+        else if (item.HasPatient && !item.HasDisease)
+        {
+            text = Localize["Symptom observed in the patient."];
+        }
+        else if (!item.HasPatient && item.HasDisease)
+        {
+            text = Localize["Symptom observed in the disease."];
+        }
+        return text;
+    }
+
+    private async Task OnSymptomClick(PhenSimilarity model)
+    {
+        CaseSymptoms = await dx29.GetSymptomsAsync(CaseId);
+        var selectedItems = CaseSymptoms.Where(r => r.IsSelected).Select(r => r.Id.ToUpper()).ToList();
+
+        var terms = await dx29.GetHpoTermsAsync(model.Id);
+        if (terms != null)
+        {
+            var term = terms.Values?.FirstOrDefault()?.FirstOrDefault();
+            HPONavigatorDialog.HPONavigator.Initialize(term, selectedItems);
+            await HPONavigatorDialog.OpenAsync();
+        }
+    }
+
+    private async Task OnHPOAccept()
+    {
+        await OnSymptomsChanged.InvokeAsync(HPONavigatorDialog);
+    }
+
+    private Symptom TryGetSymptom(string id)
+    {
+        return CaseSymptoms.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    }
+
+    public void DeselectItem(IList<Symptom> items, string id)
+    {
+        var term = items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        if (term != null)
+        {
+            term.IsSelected = false;
+        }
+    }
+}

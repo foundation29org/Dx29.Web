@@ -1,0 +1,1857 @@
+﻿[
+  {
+    "Analyzer": "TextAnalytics",
+    "Segments": [
+      {
+        "Id": "S0001",
+        "Language": "en",
+        "Text": "We report a pedigree of Branchio-oto-renal dysplasia (BOR syndrome), including documentation through serial audiometric studies of the onset and rapid progression of hearing loss in the twin sister of an affected child.",
+        "Source": {
+          "Language": "es",
+          "Text": "Se informa un pedigrí de displasia branquio-oto-renal (el síndrome BOR), incluida la documentación mediante estudios audiométricos seriados del inicio y la rápida progresión de la pérdida auditiva en la hermana gemela de un niño afectado."
+        },
+        "Annotations": [
+          {
+            "Id": "0",
+            "Text": "We report a pedigree of ",
+            "Offset": 0,
+            "Length": 24,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "1",
+            "Text": "Branchio-oto-renal dysplasia",
+            "Offset": 24,
+            "Length": 28,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "2",
+            "Text": " (",
+            "Offset": 52,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "3",
+            "Text": "BOR syndrome",
+            "Offset": 54,
+            "Length": 12,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 0.95,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0265234"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000025860"
+              },
+              {
+                "DataSource": "MDR",
+                "Id": "10071135"
+              },
+              {
+                "DataSource": "MEDCIN",
+                "Id": "363087"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "D019280"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C98983"
+              },
+              {
+                "DataSource": "NCI_NICHD",
+                "Id": "C98983"
+              },
+              {
+                "DataSource": "OMIM",
+                "Id": "113650"
+              },
+              {
+                "DataSource": "RCD",
+                "Id": "X30Lb"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "D4-00707"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "290006"
+              }
+            ]
+          },
+          {
+            "Id": "4",
+            "Text": "), including documentation through serial ",
+            "Offset": 66,
+            "Length": 42,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "5",
+            "Text": "audiometric studies",
+            "Offset": 108,
+            "Length": 19,
+            "Category": "ExaminationName",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "6",
+            "Text": " of the onset and ",
+            "Offset": 127,
+            "Length": 18,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "7",
+            "Text": "rapid progression",
+            "Offset": 145,
+            "Length": 17,
+            "Category": "ConditionQualifier",
+            "ConfidenceScore": 0.98,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "8",
+            "Text": " of ",
+            "Offset": 162,
+            "Length": 4,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "9",
+            "Text": "hearing loss",
+            "Offset": 166,
+            "Length": 12,
+            "Category": "SymptomOrSign",
+            "ConfidenceScore": 0.85,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C3887873"
+              },
+              {
+                "DataSource": "CCSR_10",
+                "Id": "EAR004"
+              },
+              {
+                "DataSource": "LNC",
+                "Id": "LA24366-9"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C35731"
+              },
+              {
+                "DataSource": "NCI_FDA",
+                "Id": "1882"
+              },
+              {
+                "DataSource": "NCI_NICHD",
+                "Id": "C35731"
+              }
+            ]
+          },
+          {
+            "Id": "10",
+            "Text": " in the ",
+            "Offset": 178,
+            "Length": 8,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "11",
+            "Text": "twin",
+            "Offset": 186,
+            "Length": 4,
+            "Category": "FamilyRelation",
+            "ConfidenceScore": 0.92,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0041427"
+              },
+              {
+                "DataSource": "AOD",
+                "Id": "0000013783"
+              },
+              {
+                "DataSource": "CCPSS",
+                "Id": "0035648"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000012673"
+              },
+              {
+                "DataSource": "CSP",
+                "Id": "1124-6077"
+              },
+              {
+                "DataSource": "HL7V3.0",
+                "Id": "TWIN"
+              },
+              {
+                "DataSource": "ICPC2ICD10ENG",
+                "Id": "MTHU077257"
+              },
+              {
+                "DataSource": "LCH",
+                "Id": "U004828"
+              },
+              {
+                "DataSource": "LCH_NW",
+                "Id": "sh85139043"
+              },
+              {
+                "DataSource": "LNC",
+                "Id": "LP76369-5"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "D014427"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C73427"
+              },
+              {
+                "DataSource": "NCI_CDISC",
+                "Id": "C73427"
+              },
+              {
+                "DataSource": "PSY",
+                "Id": "54510"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "S-10147"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "11286003"
+              }
+            ]
+          },
+          {
+            "Id": "12",
+            "Text": " ",
+            "Offset": 190,
+            "Length": 1,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "13",
+            "Text": "sister",
+            "Offset": 191,
+            "Length": 6,
+            "Category": "FamilyRelation",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0337514"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000030334"
+              },
+              {
+                "DataSource": "CSP",
+                "Id": "1124-5700"
+              },
+              {
+                "DataSource": "HL7V3.0",
+                "Id": "SIS"
+              },
+              {
+                "DataSource": "LNC",
+                "Id": "LP30278-3"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "D035781"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C25680"
+              },
+              {
+                "DataSource": "PSY",
+                "Id": "47570"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "S-10150"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "27733009"
+              }
+            ]
+          },
+          {
+            "Id": "14",
+            "Text": " of an affected ",
+            "Offset": 197,
+            "Length": 16,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "15",
+            "Text": "child",
+            "Offset": 213,
+            "Length": 5,
+            "Category": "FamilyRelation",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C4724242"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C150886"
+              },
+              {
+                "DataSource": "NCI_CDISC",
+                "Id": "C150886"
+              }
+            ]
+          },
+          {
+            "Id": "16",
+            "Text": ".",
+            "Offset": 218,
+            "Length": 1,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      },
+      {
+        "Id": "S0002",
+        "Language": "en",
+        "Text": "The literature on this syndrome is analyzed to derive some figures for its use in the genetic counseling of these families.",
+        "Source": {
+          "Language": "es",
+          "Text": "Se analiza la literatura sobre este síndrome para derivar algunas cifras para su uso en el asesoramiento genético de dichas familias."
+        },
+        "Annotations": [
+          {
+            "Id": "0",
+            "Text": "The literature on ",
+            "Offset": 0,
+            "Length": 18,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "1",
+            "Text": "this syndrome",
+            "Offset": 18,
+            "Length": 13,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 0.95,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "2",
+            "Text": " is analyzed to derive some figures for its use in the genetic counseling of these ",
+            "Offset": 31,
+            "Length": 83,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "3",
+            "Text": "families",
+            "Offset": 114,
+            "Length": 8,
+            "Category": "FamilyRelation",
+            "ConfidenceScore": 0.84,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0015576"
+              },
+              {
+                "DataSource": "AOD",
+                "Id": "0000006914"
+              },
+              {
+                "DataSource": "CCPSS",
+                "Id": "0030810"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000004879"
+              },
+              {
+                "DataSource": "CSP",
+                "Id": "1123-4254"
+              },
+              {
+                "DataSource": "LCH",
+                "Id": "U001730"
+              },
+              {
+                "DataSource": "LCH_NW",
+                "Id": "sh85047009"
+              },
+              {
+                "DataSource": "LNC",
+                "Id": "LP76012-1"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "D005190"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C25173"
+              },
+              {
+                "DataSource": "NCI_NCI-GLOSS",
+                "Id": "CDR0000460148"
+              },
+              {
+                "DataSource": "OMS",
+                "Id": "MTHU000002"
+              },
+              {
+                "DataSource": "PSY",
+                "Id": "19300"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "S-10000"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "35359004"
+              }
+            ]
+          },
+          {
+            "Id": "4",
+            "Text": ".",
+            "Offset": 122,
+            "Length": 1,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      },
+      {
+        "Id": "S0003",
+        "Language": "en",
+        "Text": "Branchio-Oto-renal dysplasia is an autosomal dominant disorder in which affected individuals may present with preauricular Fossae, lacrimal duct stenosis, hearing loss, branchial fistulas or cysts, structural defects of the external, middle and inner ear and renal anomalies, which may range from mild hypoplasia to total absence.",
+        "Source": {
+          "Language": "es",
+          "Text": "La displasia branquio-oto-renal es un trastorno autosómico dominante en el que los individuos afectados pueden presentar fosas preauriculares, estenosis del conducto lagrimal, hipoacusia, fístulas branquiales o quistes, defectos estructurales del oído externo, medio e interno y anomalías renales, que pueden van desde hipoplasia leve hasta ausencia total."
+        },
+        "Annotations": [
+          {
+            "Id": "0",
+            "Text": "Branchio-Oto-renal dysplasia",
+            "Offset": 0,
+            "Length": 28,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "1",
+            "Text": " is an ",
+            "Offset": 28,
+            "Length": 7,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "2",
+            "Text": "autosomal dominant disorder",
+            "Offset": 35,
+            "Length": 27,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C3899989"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C98829"
+              }
+            ]
+          },
+          {
+            "Id": "3",
+            "Text": " in which affected individuals may present with ",
+            "Offset": 62,
+            "Length": 48,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "4",
+            "Text": "preauricular Fossae",
+            "Offset": 110,
+            "Length": 19,
+            "Category": "SymptomOrSign",
+            "ConfidenceScore": 0.81,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "5",
+            "Text": ", ",
+            "Offset": 129,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "6",
+            "Text": "lacrimal duct stenosis",
+            "Offset": 131,
+            "Length": 22,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 0.57,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0238300"
+              },
+              {
+                "DataSource": "DXP",
+                "Id": "U001256"
+              },
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0007678"
+              },
+              {
+                "DataSource": "ICPC2ICD10ENG",
+                "Id": "MTHU069524"
+              },
+              {
+                "DataSource": "OMIM",
+                "Id": "MTHU017470"
+              },
+              {
+                "DataSource": "RCD",
+                "Id": "X00ZL"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "231841004"
+              }
+            ]
+          },
+          {
+            "Id": "7",
+            "Text": ", ",
+            "Offset": 153,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "8",
+            "Text": "hearing loss",
+            "Offset": 155,
+            "Length": 12,
+            "Category": "SymptomOrSign",
+            "ConfidenceScore": 0.87,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C3887873"
+              },
+              {
+                "DataSource": "CCSR_10",
+                "Id": "EAR004"
+              },
+              {
+                "DataSource": "LNC",
+                "Id": "LA24366-9"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C35731"
+              },
+              {
+                "DataSource": "NCI_FDA",
+                "Id": "1882"
+              },
+              {
+                "DataSource": "NCI_NICHD",
+                "Id": "C35731"
+              }
+            ]
+          },
+          {
+            "Id": "9",
+            "Text": ", ",
+            "Offset": 167,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "10",
+            "Text": "branchial fistulas",
+            "Offset": 169,
+            "Length": 18,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 0.85,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0546968"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000038877"
+              },
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0009795"
+              },
+              {
+                "DataSource": "ICPC2ICD10ENG",
+                "Id": "MTHU041366"
+              },
+              {
+                "DataSource": "MEDCIN",
+                "Id": "30772"
+              },
+              {
+                "DataSource": "OMIM",
+                "Id": "MTHU001190"
+              },
+              {
+                "DataSource": "RCD",
+                "Id": "P4403"
+              },
+              {
+                "DataSource": "SNM",
+                "Id": "M-21800"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "D4-B2011"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "204268008"
+              }
+            ]
+          },
+          {
+            "Id": "11",
+            "Text": " or ",
+            "Offset": 187,
+            "Length": 4,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "12",
+            "Text": "cysts",
+            "Offset": 191,
+            "Length": 5,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0010709"
+              },
+              {
+                "DataSource": "AOD",
+                "Id": "0000023009"
+              },
+              {
+                "DataSource": "CCPSS",
+                "Id": "0017173"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000003564"
+              },
+              {
+                "DataSource": "COSTAR",
+                "Id": "216"
+              },
+              {
+                "DataSource": "CST",
+                "Id": "CYST"
+              },
+              {
+                "DataSource": "LCH",
+                "Id": "U001247"
+              },
+              {
+                "DataSource": "LNC",
+                "Id": "LP249802-2"
+              },
+              {
+                "DataSource": "MDR",
+                "Id": "10011732"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "D003560"
+              },
+              {
+                "DataSource": "MTH",
+                "Id": "471"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C2978"
+              },
+              {
+                "DataSource": "NCI_CDISC",
+                "Id": "C2978"
+              },
+              {
+                "DataSource": "NCI_NCI-GLOSS",
+                "Id": "CDR0000046461"
+              },
+              {
+                "DataSource": "NCI_NICHD",
+                "Id": "C2978"
+              },
+              {
+                "DataSource": "RCD",
+                "Id": "XC0cU"
+              },
+              {
+                "DataSource": "SNM",
+                "Id": "M-33400"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "M-33400"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "441457006"
+              },
+              {
+                "DataSource": "WHO",
+                "Id": "1581"
+              }
+            ]
+          },
+          {
+            "Id": "13",
+            "Text": ", ",
+            "Offset": 196,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "14",
+            "Text": "structural defects",
+            "Offset": 198,
+            "Length": 18,
+            "Category": "SymptomOrSign",
+            "ConfidenceScore": 0.92,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "15",
+            "Text": " of the ",
+            "Offset": 216,
+            "Length": 8,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "16",
+            "Text": "external",
+            "Offset": 224,
+            "Length": 8,
+            "Category": "BodyStructure",
+            "ConfidenceScore": 0.99,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C1548801"
+              },
+              {
+                "DataSource": "HL7V2.5",
+                "Id": "EXT"
+              }
+            ]
+          },
+          {
+            "Id": "17",
+            "Text": ", ",
+            "Offset": 232,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "18",
+            "Text": "middle",
+            "Offset": 234,
+            "Length": 6,
+            "Category": "BodyStructure",
+            "ConfidenceScore": 0.97,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0227972"
+              },
+              {
+                "DataSource": "FMA",
+                "Id": "45701"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C13094"
+              },
+              {
+                "DataSource": "NCI_CDISC",
+                "Id": "C13094"
+              },
+              {
+                "DataSource": "NCI_CPTAC",
+                "Id": "C13094"
+              },
+              {
+                "DataSource": "RCD",
+                "Id": "X7569"
+              },
+              {
+                "DataSource": "SNM",
+                "Id": "T-77200"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "T-92100"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "33540003"
+              },
+              {
+                "DataSource": "UWDA",
+                "Id": "45701"
+              }
+            ]
+          },
+          {
+            "Id": "19",
+            "Text": " and ",
+            "Offset": 240,
+            "Length": 5,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "20",
+            "Text": "inner ear",
+            "Offset": 245,
+            "Length": 9,
+            "Category": "BodyStructure",
+            "ConfidenceScore": 0.95,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0022889"
+              },
+              {
+                "DataSource": "AOD",
+                "Id": "0000027967"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000007168"
+              },
+              {
+                "DataSource": "CSP",
+                "Id": "0975-0953"
+              },
+              {
+                "DataSource": "FMA",
+                "Id": "60909"
+              },
+              {
+                "DataSource": "ICF",
+                "Id": "s260"
+              },
+              {
+                "DataSource": "ICF-CY",
+                "Id": "s260"
+              },
+              {
+                "DataSource": "LCH",
+                "Id": "U002603"
+              },
+              {
+                "DataSource": "LCH_NW",
+                "Id": "sh85073788"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "D007758"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C12499"
+              },
+              {
+                "DataSource": "NCI_CDISC",
+                "Id": "SEND-SPEC"
+              },
+              {
+                "DataSource": "PSY",
+                "Id": "27660"
+              },
+              {
+                "DataSource": "RCD",
+                "Id": "XaADI"
+              },
+              {
+                "DataSource": "SNM",
+                "Id": "T-XY700"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "T-AB700"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "22945000"
+              },
+              {
+                "DataSource": "UWDA",
+                "Id": "60909"
+              }
+            ]
+          },
+          {
+            "Id": "21",
+            "Text": " and ",
+            "Offset": 254,
+            "Length": 5,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "22",
+            "Text": "renal anomalies",
+            "Offset": 259,
+            "Length": 15,
+            "Category": "SymptomOrSign",
+            "ConfidenceScore": 0.66,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0266292"
+              },
+              {
+                "DataSource": "CCPSS",
+                "Id": "0056428"
+              },
+              {
+                "DataSource": "DXP",
+                "Id": "U003355"
+              },
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000077"
+              },
+              {
+                "DataSource": "ICPC2ICD10ENG",
+                "Id": "MTHU006807"
+              },
+              {
+                "DataSource": "ICPC2P",
+                "Id": "U85005"
+              },
+              {
+                "DataSource": "MDR",
+                "Id": "10010606"
+              },
+              {
+                "DataSource": "OMIM",
+                "Id": "MTHU010000"
+              },
+              {
+                "DataSource": "RCD",
+                "Id": "X785S"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "D4-71000"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "44513007"
+              }
+            ]
+          },
+          {
+            "Id": "23",
+            "Text": ", which may range from ",
+            "Offset": 274,
+            "Length": 23,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "24",
+            "Text": "mild",
+            "Offset": 297,
+            "Length": 4,
+            "Category": "ConditionQualifier",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "25",
+            "Text": " ",
+            "Offset": 301,
+            "Length": 1,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "26",
+            "Text": "hypoplasia",
+            "Offset": 302,
+            "Length": 10,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 1.0,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0243069"
+              },
+              {
+                "DataSource": "AOD",
+                "Id": "0000004506"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000025100"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "Q000002"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C120893"
+              },
+              {
+                "DataSource": "NCI_CDISC",
+                "Id": "C120893"
+              },
+              {
+                "DataSource": "NCI_CTRP",
+                "Id": "C120893"
+              },
+              {
+                "DataSource": "NCI_NICHD",
+                "Id": "C120893"
+              },
+              {
+                "DataSource": "SNM",
+                "Id": "M-75300"
+              },
+              {
+                "DataSource": "SNMI",
+                "Id": "M-75300"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "55199003"
+              }
+            ]
+          },
+          {
+            "Id": "27",
+            "Text": " to ",
+            "Offset": 312,
+            "Length": 4,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "28",
+            "Text": "total",
+            "Offset": 316,
+            "Length": 5,
+            "Category": "ConditionQualifier",
+            "ConfidenceScore": 0.74,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": null
+          },
+          {
+            "Id": "29",
+            "Text": " ",
+            "Offset": 321,
+            "Length": 1,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "30",
+            "Text": "absence",
+            "Offset": 322,
+            "Length": 7,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 0.78,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C1689985"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "418560003"
+              }
+            ]
+          },
+          {
+            "Id": "31",
+            "Text": ".",
+            "Offset": 329,
+            "Length": 1,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      },
+      {
+        "Id": "S0004",
+        "Language": "en",
+        "Text": "Not all the characteristics of the syndrome are expressed in all the carriers of the gene, but few carriers lack all the characteristics, and the fossa, the branchial clefts and the hearing loss are often expressed.",
+        "Source": {
+          "Language": "es",
+          "Text": "No todas las características del síndrome se expresan en todos los portadores del gen, pero pocos portadores carecen de todas las características, y las fosas, las hendiduras branquiales y la hipoacusia se expresan con frecuencia."
+        },
+        "Annotations": [
+          {
+            "Id": "0",
+            "Text": "Not all the characteristics of ",
+            "Offset": 0,
+            "Length": 31,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "1",
+            "Text": "the syndrome",
+            "Offset": 31,
+            "Length": 12,
+            "Category": "Diagnosis",
+            "ConfidenceScore": 0.98,
+            "IsNegated": true,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C1857276"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "C565627"
+              },
+              {
+                "DataSource": "OMIM",
+                "Id": "222470"
+              },
+              {
+                "DataSource": "SNOMEDCT_US",
+                "Id": "703406006"
+              }
+            ]
+          },
+          {
+            "Id": "2",
+            "Text": " are expressed in all the carriers of the gene, but few carriers lack all the characteristics, and the ",
+            "Offset": 43,
+            "Length": 103,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "3",
+            "Text": "fossa",
+            "Offset": 146,
+            "Length": 5,
+            "Category": "BodyStructure",
+            "ConfidenceScore": 0.89,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C0836913"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000049453"
+              },
+              {
+                "DataSource": "FMA",
+                "Id": "45791"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C34007"
+              },
+              {
+                "DataSource": "UWDA",
+                "Id": "45791"
+              }
+            ]
+          },
+          {
+            "Id": "4",
+            "Text": ", the ",
+            "Offset": 151,
+            "Length": 6,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "5",
+            "Text": "branchial clefts",
+            "Offset": 157,
+            "Length": 16,
+            "Category": "SymptomOrSign",
+            "ConfidenceScore": 0.99,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C1280559"
+              },
+              {
+                "DataSource": "CHV",
+                "Id": "0000057119"
+              },
+              {
+                "DataSource": "FMA",
+                "Id": "295672"
+              },
+              {
+                "DataSource": "ICPC2ICD10ENG",
+                "Id": "MTHU012522"
+              },
+              {
+                "DataSource": "MSH",
+                "Id": "D001934"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C34250"
+              }
+            ]
+          },
+          {
+            "Id": "6",
+            "Text": " and the ",
+            "Offset": 173,
+            "Length": 9,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "7",
+            "Text": "hearing loss",
+            "Offset": 182,
+            "Length": 12,
+            "Category": "SymptomOrSign",
+            "ConfidenceScore": 0.98,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "UMLS",
+                "Id": "C3887873"
+              },
+              {
+                "DataSource": "CCSR_10",
+                "Id": "EAR004"
+              },
+              {
+                "DataSource": "LNC",
+                "Id": "LA24366-9"
+              },
+              {
+                "DataSource": "NCI",
+                "Id": "C35731"
+              },
+              {
+                "DataSource": "NCI_FDA",
+                "Id": "1882"
+              },
+              {
+                "DataSource": "NCI_NICHD",
+                "Id": "C35731"
+              }
+            ]
+          },
+          {
+            "Id": "8",
+            "Text": " are often expressed.",
+            "Offset": 194,
+            "Length": 21,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Analyzer": "NCR",
+    "Segments": [
+      {
+        "Id": "S0001",
+        "Language": "en",
+        "Text": "We report a pedigree of Branchio-oto-renal dysplasia (BOR syndrome), including documentation through serial audiometric studies of the onset and rapid progression of hearing loss in the twin sister of an affected child.",
+        "Source": {
+          "Language": "es",
+          "Text": "Se informa un pedigrí de displasia branquio-oto-renal (el síndrome BOR), incluida la documentación mediante estudios audiométricos seriados del inicio y la rápida progresión de la pérdida auditiva en la hermana gemela de un niño afectado."
+        },
+        "Annotations": [
+          {
+            "Id": "1",
+            "Text": "We report a pedigree of Branchio-oto-",
+            "Offset": 0,
+            "Length": 37,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "2",
+            "Text": "renal dysplasia",
+            "Offset": 37,
+            "Length": 15,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.993186,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000110"
+              }
+            ]
+          },
+          {
+            "Id": "3",
+            "Text": " (BOR syndrome), including documentation through serial audiometric studies of the onset and rapid ",
+            "Offset": 52,
+            "Length": 99,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "4",
+            "Text": "progression of hearing loss in the",
+            "Offset": 151,
+            "Length": 34,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.8343552,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000365"
+              }
+            ]
+          },
+          {
+            "Id": "5",
+            "Text": " twin sister of an affected child.",
+            "Offset": 185,
+            "Length": 34,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      },
+      {
+        "Id": "S0002",
+        "Language": "en",
+        "Text": "The literature on this syndrome is analyzed to derive some figures for its use in the genetic counseling of these families.",
+        "Source": {
+          "Language": "es",
+          "Text": "Se analiza la literatura sobre este síndrome para derivar algunas cifras para su uso en el asesoramiento genético de dichas familias."
+        },
+        "Annotations": [
+          {
+            "Id": "1",
+            "Text": "The literature on this syndrome is analyzed to derive some figures for its use in the genetic counseling of these families.",
+            "Offset": 0,
+            "Length": 123,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      },
+      {
+        "Id": "S0003",
+        "Language": "en",
+        "Text": "Branchio-Oto-renal dysplasia is an autosomal dominant disorder in which affected individuals may present with preauricular Fossae, lacrimal duct stenosis, hearing loss, branchial fistulas or cysts, structural defects of the external, middle and inner ear and renal anomalies, which may range from mild hypoplasia to total absence.",
+        "Source": {
+          "Language": "es",
+          "Text": "La displasia branquio-oto-renal es un trastorno autosómico dominante en el que los individuos afectados pueden presentar fosas preauriculares, estenosis del conducto lagrimal, hipoacusia, fístulas branquiales o quistes, defectos estructurales del oído externo, medio e interno y anomalías renales, que pueden van desde hipoplasia leve hasta ausencia total."
+        },
+        "Annotations": [
+          {
+            "Id": "1",
+            "Text": "Branchio-Oto-",
+            "Offset": 0,
+            "Length": 13,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "2",
+            "Text": "renal dysplasia",
+            "Offset": 13,
+            "Length": 15,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.993186,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000110"
+              }
+            ]
+          },
+          {
+            "Id": "3",
+            "Text": " is an autosomal dominant disorder in which affected individuals may present with ",
+            "Offset": 28,
+            "Length": 82,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "4",
+            "Text": "preauricular",
+            "Offset": 110,
+            "Length": 12,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.8012576,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0004467"
+              }
+            ]
+          },
+          {
+            "Id": "5",
+            "Text": " Fossae, ",
+            "Offset": 122,
+            "Length": 9,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "6",
+            "Text": "lacrimal duct stenosis",
+            "Offset": 131,
+            "Length": 22,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.9900929,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0007678"
+              }
+            ]
+          },
+          {
+            "Id": "7",
+            "Text": ", ",
+            "Offset": 153,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "8",
+            "Text": "hearing loss",
+            "Offset": 155,
+            "Length": 12,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.9879308,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000365"
+              }
+            ]
+          },
+          {
+            "Id": "9",
+            "Text": ", ",
+            "Offset": 167,
+            "Length": 2,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "10",
+            "Text": "branchial fistulas",
+            "Offset": 169,
+            "Length": 18,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.98340493,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0009795"
+              }
+            ]
+          },
+          {
+            "Id": "11",
+            "Text": " or cysts, structural defects of the external, middle and inner ear and ",
+            "Offset": 187,
+            "Length": 72,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "12",
+            "Text": "renal anomalies",
+            "Offset": 259,
+            "Length": 15,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.96336806,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000077"
+              }
+            ]
+          },
+          {
+            "Id": "13",
+            "Text": "inner ear",
+            "Offset": 245,
+            "Length": 9,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.8005606,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000359"
+              }
+            ]
+          },
+          {
+            "Id": "14",
+            "Text": " and renal anomalies, which may range from mild hypoplasia to total absence.",
+            "Offset": 254,
+            "Length": 76,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      },
+      {
+        "Id": "S0004",
+        "Language": "en",
+        "Text": "Not all the characteristics of the syndrome are expressed in all the carriers of the gene, but few carriers lack all the characteristics, and the fossa, the branchial clefts and the hearing loss are often expressed.",
+        "Source": {
+          "Language": "es",
+          "Text": "No todas las características del síndrome se expresan en todos los portadores del gen, pero pocos portadores carecen de todas las características, y las fosas, las hendiduras branquiales y la hipoacusia se expresan con frecuencia."
+        },
+        "Annotations": [
+          {
+            "Id": "1",
+            "Text": "Not all the characteristics of the syndrome are expressed in all the carriers of the gene, but few carriers lack all the characteristics, and the fossa, the branchial clefts and ",
+            "Offset": 0,
+            "Length": 178,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          },
+          {
+            "Id": "2",
+            "Text": "the hearing loss",
+            "Offset": 178,
+            "Length": 16,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.9771594,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0000365"
+              }
+            ]
+          },
+          {
+            "Id": "3",
+            "Text": "branchial",
+            "Offset": 157,
+            "Length": 9,
+            "Category": "Symptom",
+            "ConfidenceScore": 0.94984186,
+            "IsNegated": false,
+            "IsDiscarded": false,
+            "Links": [
+              {
+                "DataSource": "HPO",
+                "Id": "HP:0009794"
+              }
+            ]
+          },
+          {
+            "Id": "4",
+            "Text": " clefts and the hearing loss are often expressed.",
+            "Offset": 166,
+            "Length": 49,
+            "Category": null,
+            "ConfidenceScore": 0.0,
+            "IsNegated": false,
+            "IsDiscarded": true,
+            "Links": null
+          }
+        ]
+      }
+    ]
+  }
+]

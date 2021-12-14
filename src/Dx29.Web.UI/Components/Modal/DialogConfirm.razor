@@ -1,0 +1,47 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject LocalizationService Localize
+
+<Modal @ref="Dialog" OnClose="OnCancel">
+    <ModalIcon>
+        <i class="icon-2x flaticon2-warning text-danger"></i>
+    </ModalIcon>
+    <ModalHeader>
+        <ModalTitle Title="@Title" />
+    </ModalHeader>
+    <ModalBody>
+        @ChildContent
+    </ModalBody>
+    <ModalFooter>
+        <ModalAcceptCancel Accept="@Localize["Ok"]" Cancel="@Localize["Cancel"]" OnAccept="OnAcceptHandler" OnCancel="OnCancel" />
+    </ModalFooter>
+</Modal>
+
+@code
+{
+    private Modal Dialog;
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnAccept { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    public void Open() => Dialog.Open();
+    public async Task OpenAsync() => await Dialog.OpenAsync();
+
+    public void Close() => Dialog.Close();
+    public async Task CloseAsync() => await Dialog.CloseAsync();
+
+    private async void OnAcceptHandler()
+    {
+        await Dialog.CloseAsync();
+        await OnAccept.InvokeAsync();
+    }
+}

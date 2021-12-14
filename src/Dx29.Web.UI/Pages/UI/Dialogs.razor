@@ -1,0 +1,27 @@
+﻿@page "/UI/Dialogs"
+
+<SyncDialogConfirm @ref="DialogConfirm" Title="Save changes?">
+    <h5>You made some changes to the list of symptoms. Do you want to save changes?</h5>
+    <p></p>
+</SyncDialogConfirm>
+
+<div @onclick="OnClick">
+    Click
+</div>
+
+<pre>
+    @Message
+</pre>
+
+@code
+{
+    private SyncDialogConfirm DialogConfirm;
+
+    private string Message = null;
+
+    private async Task OnClick()
+    {
+        var res = await DialogConfirm.OpenAsync();
+        Message = res.ToString();
+    }
+}

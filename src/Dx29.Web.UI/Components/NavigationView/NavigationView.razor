@@ -1,0 +1,38 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="row">
+    <div class="col-lg-3">
+        <div>
+            @NavigationHeader
+            <div>
+                <ul class="navi navi-link-rounded navi-accent navi-hover navi-active nav flex-column mb-8 mb-lg-0" role="tablist">
+                    @NavigationItems
+                </ul>
+            </div>
+        </div>
+        <hr class="py-4 d-lg-none" />
+    </div>
+    <div class="col-lg-9 pl-8 border-left">
+        <div class="pr-4 min-h-450px">
+            @ViewHeader
+            <div class="hide-scroll">
+                @ViewContent
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public RenderFragment NavigationHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment NavigationItems { get; set; }
+
+    [Parameter]
+    public RenderFragment ViewHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment ViewContent { get; set; }
+}

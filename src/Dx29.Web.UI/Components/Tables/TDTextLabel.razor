@@ -1,0 +1,46 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<TD CssClass="@CssClass" HRef="@HRef" IsDisable="IsDisable" OnClick="@OnClick">
+    @if (IsEmpty)
+    {
+        <div class="font-weight-bold @CssText">-</div>
+    }
+    else
+    {
+        <div class="text-truncate-1 font-weight-bolder @CssText">@Text</div>
+        <div class="text-truncate-@Truncate font-size-sm opa-75 @Csslabel">@Label</div>
+    }
+</TD>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string HRef { get; set; }
+
+    [Parameter]
+    public bool IsEmpty { get; set; }
+
+    [Parameter]
+    public bool IsDisable { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+
+    [Parameter]
+    public string CssText { get; set; }
+
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public string Csslabel { get; set; }
+
+    [Parameter]
+    public int Truncate { get; set; } = 1;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

@@ -1,0 +1,140 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IAccessTokenProvider TokenProvider
+
+<h3>@Localize["Upload Genotype"]</h3>
+<h4 class="mb-6 text-black-50">@Localize["Add multisample genotype: VCF + PED"]</h4>
+
+<div class="font-size-h6 font-italic">
+    @Localize["These files will be used to extract genes and other important information to facilitate the analysis."]
+    <span></span>
+    <a href="#" class="text-primary" @onclick="OpenMoreInfo" @onclick:preventDefault>
+        @Localize["Click here if you need more information."]
+    </a>
+</div>
+
+<div class="mb-6"></div>
+
+<FileUploadMaxType MaxFilesByType=1 EquivalentExtensions=ListEquivalentExtensions Url="@Url" AccessToken="@AccessToken" FileItems="FileItems" ExistingNames="ExistingNames" AcceptExtensions=".vcf,.vcf.gz, .ped" OnReadyStateChanged="OnReadyStateChanged" OnCancelStateChanged="OnCancelStateChanged">
+    @Localize["Click or drop files here to upload"]
+</FileUploadMaxType>
+@if ((ItemVCF == null) && (FileItems.Count > 0))
+{
+    <div class="mt-2 text-danger">
+        <p> @Localize["You must provide one VCF file"] </p>
+    </div>
+}
+@if ((ItemPED == null) && (FileItems.Count > 0))
+{
+    <div class="mt-2 text-danger">
+        <p> @Localize["You must provide one PED file"] </p>
+    </div>
+}
+
+<div class="mb-6"></div>
+<div class="font-italic">@Localize["Supported files are: .vcf, .vcf.gz, .ped"]</div>
+
+
+
+<DialogOk @ref="DialogMoreInfo" Title="@Localize["Multisample VCFs"]" Icon="flaticon2-information">
+    <h4 class="text-primary">@Localize["Inheritance and pedigrees"]</h4>
+    <p>@Localize["File containing pedigree information in Linkage pedigree format. Request it to your lab."] </p>
+    <p>@Localize["Colunms are:"]</p>
+    <ul>
+        <li>@Localize["Family ID"]</li>
+        <li>@Localize["Individual ID"]</li>
+        <li>@Localize["Paternal ID"]</li>
+        <li>@Localize["Maternal ID"]</li>
+        <li>@Localize["Sex (1=male; 2=female; other=unknown)"]</li>
+        <li>@Localize["Phenotype (-9 or 0 missing, 1 unaffected, 2 affected)"]</li>
+    </ul>
+    <p>@Localize["Requires a multisample VCF file with the same individual IDs and a Proband."]</p>
+    <p>@Localize["Further reading: "] <a href="https://gatkforums.broadinstitute.org/gatk/discussion/7696/pedigree-ped-files" target="_blank">GATK forum</a>, <a href="https://www.mv.helsinki.fi/home/tsjuntun/autogscan/pedigreefile.html" target="_blank">Autogscan</a>, <a href="http://zzz.bwh.harvard.edu/plink/data.shtml#ped" target="_blank">Purcell lab @@ BWH</a>.</p>
+    <p class="mt-2">@Localize["Example:"]</p>
+    <table style="width:75%">
+        <tr>
+            <td>FAM1</td>
+            <td>ID1</td>
+            <td>0</td>
+            <td>0</td>
+            <td>1</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>FAM1</td>
+            <td>ID2</td>
+            <td>0</td>
+            <td>0</td>
+            <td>2</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>FAM1</td>
+            <td>ID3</td>
+            <td>ID1</td>
+            <td>ID2</td>
+            <td>1</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>FAM1</td>
+            <td>ID4</td>
+            <td>ID1</td>
+            <td>ID2</td>
+            <td>2</td>
+            <td>2</td>
+        </tr>
+    </table>
+    <p></p>
+</DialogOk>
+
+@code
+{
+    [Parameter]
+    public Dictionary<string, FileItem> FileItems { get; set; }
+
+    private string Url => $"/api/v1/FileStorage/temp";
+
+    private string AccessToken;
+
+    private List<string> ExistingNames = new List<string>();
+    private List<string> ListEquivalentExtensions = new List<string>();
+    private FileItem ItemVCF => (FileItems.Values.Where(r => (r.Name.ToLower().Contains(".vcf") && (r.IsReady) && (r.Status != "Deleted") && (r.Status != "Canceled"))).FirstOrDefault());
+    private FileItem ItemPED => (FileItems.Values.Where(r => (r.Name.ToLower().Contains(".ped") && (r.IsReady) && (r.Status != "Deleted") && (r.Status != "Canceled"))).FirstOrDefault());
+
+    private DialogOk DialogMoreInfo;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListEquivalentExtensions.Add(".vcf");
+        ListEquivalentExtensions.Add(".vcf.gz");
+        var accessTokenResult = await TokenProvider.RequestAccessToken();
+        if (accessTokenResult.TryGetToken(out var token))
+        {
+            AccessToken = token.Value;
+        }
+    }
+
+    private void OnReadyStateChanged(bool isReady)
+    {
+        StateHasChanged();
+    }
+
+    private void OnCancelStateChanged(bool isCanceled)
+    {
+        StateHasChanged();
+    }
+    private async Task OpenMoreInfo()
+    {
+        await DialogMoreInfo.OpenAsync();
+    }
+
+    public bool Validate()
+    {
+        return ((ItemVCF != null) && (ItemPED != null));
+    }
+}

@@ -1,0 +1,30 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="symbol symbol-50 symbol-light mx-4">
+    <span class="symbol-label">
+        <img src="media/avatars/@Icon" class="h-75 align-self-end" alt="@Gender" />
+    </span>
+</div>
+
+@code
+{
+    [Parameter]
+    public string Gender { get; set; }
+
+    private string Icon
+    {
+        get
+        {
+            var gender = Gender ?? "";
+            switch (gender.ToLower())
+            {
+                case "male":
+                    return "male.svg";
+                case "female":
+                    return "female.svg";
+                default:
+                    return "unknown.svg";
+            }
+        }
+    }
+}

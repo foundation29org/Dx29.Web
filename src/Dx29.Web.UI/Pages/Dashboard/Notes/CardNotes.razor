@@ -1,0 +1,65 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+<DashboardCard CssClassBody="min-h-100px max-h-150px" Name="Notes" Title="@Localize["Notes"]" Subtitle="@TotalCount" HRef="@HRef" OnAddClick="OnAddClick" IsLoading="IsLoading">
+    <DataTable CssClass="compact">
+        <DataTableBody>
+            <Repeater Items="Items" Context="item">
+                <tr>
+                    <TDIcon CssClass="align-top pt-3">
+                        <KnownIcon Name="Notes" Type="Item" />
+                    </TDIcon>
+                    <TDTextLabel Text="@Localize.ToShortDateString(item.CreatedOn)" Label="@item.Name" Truncate="2" OnClick="() => OnItemClick(item)" />
+                </tr>
+            </Repeater>
+        </DataTableBody>
+    </DataTable>
+</DashboardCard>
+
+<NotesDialog @ref="NotesDialog" CaseId="@CaseId" OnAccept="OnAccept" />
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private NotesDialog NotesDialog = null;
+
+    private IList<NoteModel> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0} notes", Items.Count];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItemsAsync();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var items = await dx29.GetNotesAsync(CaseId);
+        Items = items.OrderByDescending(r => r.UpdatedOn).ToList();
+    }
+
+    private void OnAddClick()
+    {
+        NotesDialog.OpenNew();
+    }
+
+    private async void OnItemClick(NoteModel item)
+    {
+        await NotesDialog.OpenEditAsync(item.Id);
+    }
+
+    private async void OnAccept()
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private string HRef => $"/Notes/{CaseId}";
+}

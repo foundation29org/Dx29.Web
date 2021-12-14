@@ -1,0 +1,171 @@
+﻿@page "/Diagnosis2/{caseId}"
+
+@inherits PageCase
+
+@using Microsoft.AspNetCore.WebUtilities;
+@using Microsoft.Extensions.Primitives;
+@inject NavigationManager navManager
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<Card IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" ConfirmBackNavigationAsync="OnConfirmBackNavigationAsync" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Diagnosis" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Disease resources HUB"]" IsLoading="IsLoading" />
+    </CardHeader>
+    <CardToolbar>
+        @if ((diseaseInfo != null) && (onEdit == false))
+        {
+            <ButtonEdit Text="@Localize["Change disease"]" OnClick="OnEdit"></ButtonEdit>
+        }
+        else if (onEdit == true)
+        {
+            <ButtonSave Text="@Localize["Save and Exit"]" OnClick="OnSave" />
+        }
+    </CardToolbar>
+    <CardBody>
+        @if ((diseaseInfo == null) || (onEdit == true))
+        {
+            <Diagnosis2Header CaseSummary="@CaseSummary" CaseId="@CaseId" DiseaseChanged="(id) => OnValueChangedAsync(id)"></Diagnosis2Header>
+        }
+        <Diagnosis2Body CaseId="@CaseId" CaseSummary="@CaseSummary" SelectedDisease="@searchedDisease" DiseaseChanged="(id) => OnSaveFromBody(id)" OnEdit="@onEdit"></Diagnosis2Body>
+    </CardBody>
+</Card>
+
+
+<DialogConfirm @ref="DialogConfirm" Title="@Localize["Save changes?"]" OnAccept="OnConfirmSaveChanges" OnCancel="OnCancelSaveChanges">
+    <h5>@Localize["You made some changes to the diagnosed disease. Do you want to save changes?"]</h5>
+    <p></p>
+</DialogConfirm>
+
+@code
+{
+
+    private MedicalCaseSummary CaseSummary = null;
+
+    private bool IsLoading => CaseSummary == null;
+
+    private DialogConfirm DialogConfirm;
+
+    private bool IsDirty = false;
+    private bool onEdit = false;
+
+    private PatientInfoModel Model = null;
+    private IList<string> diseasesIds = null;
+    private TermDesc diseaseInfo = null;
+
+    private TermDesc searchedDisease = null;
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDiagnosedAsync();
+        StateHasChanged();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CaseId != null)
+        {
+            CaseSummary = await dx29.GetCaseSummaryAsync(CaseId);
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task LoadDiagnosedAsync()
+    {
+        var uri = navManager.ToAbsoluteUri(navManager.Uri);
+        bool editOnQuery = false;
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("edit", out var edit))
+        {
+            onEdit = Convert.ToBoolean(edit);
+            editOnQuery = true;
+        }
+        var medicalCase = await dx29.GetMedicalCaseAsync(CaseId);
+        Model = medicalCase.AsPatientModel().PatientInfo;
+        var listDiseasesIds = Model?.DiseasesIds;
+        if (listDiseasesIds != null)
+        {
+            if (listDiseasesIds.Count > 0)
+            {
+                string diagnosedSelected = listDiseasesIds.Select(z => z).FirstOrDefault();
+                var listTermsResult = await dx29.SearchDiseasesAsync(diagnosedSelected);
+                diseaseInfo = listTermsResult.Where(r => r.Id == diagnosedSelected).FirstOrDefault();
+                searchedDisease = diseaseInfo;
+                if (!editOnQuery) onEdit = false;
+            }
+        }
+    }
+
+    private async Task OnSaveFromBody(string id)
+    {
+        await OnValueChangedAsync(id);
+        await OnSave();
+    }
+
+    private async Task OnSave()
+    {
+        IsDirty = false;
+        if (onEdit == true)
+        {
+            diseaseInfo = searchedDisease;
+            onEdit = false;
+        }
+        if (diseaseInfo != null)
+        {
+            Model.DiseasesIds.Clear();
+            Model.DiseasesIds.Add(diseaseInfo.Id);
+            await dx29.UpdatePatientAsync(CaseId, Model);
+        }
+        Navigation.TryGoBack(BackHRef);
+    }
+
+    private async Task<bool> OnConfirmBackNavigationAsync()
+    {
+        if (IsDirty)
+        {
+            DialogConfirm.Open();
+            return await Task.FromResult(false);
+        }
+        return await Task.FromResult(true);
+    }
+
+    private async Task OnConfirmSaveChanges()
+    {
+        await OnSave();
+    }
+
+    private void OnCancelSaveChanges()
+    {
+        Navigation.TryGoBack(BackHRef);
+    }
+
+    private void OnEdit()
+    {
+        onEdit = true;
+        if (searchedDisease != diseaseInfo)
+        {
+            IsDirty = true;
+        }
+    }
+
+    public async Task OnValueChangedAsync(string id)
+    {
+        if (id != null)
+        {
+            var listTerms = await dx29.SearchDiseasesIdAndMondoAsync(id);
+            searchedDisease = listTerms.Where(r => r.Id == id).FirstOrDefault();
+            onEdit = true;
+            StateHasChanged();
+        }
+    }
+
+
+}

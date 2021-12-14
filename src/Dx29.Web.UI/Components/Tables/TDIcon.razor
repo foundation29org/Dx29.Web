@@ -1,0 +1,30 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<td class="@CssClass" style="width: 40px">
+    @if (Status == "Ready")
+    {
+        @ChildContent
+    }
+    else if (Status == "Error")
+    {
+        <i class="flaticon2-warning text-danger"></i>
+    }
+    else
+    {
+        <div>
+            <Spinner CssClass="spinner-sm" Style="height: 24px" />
+        </div>
+    }
+</td>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string Status { get; set; } = "Ready";
+}

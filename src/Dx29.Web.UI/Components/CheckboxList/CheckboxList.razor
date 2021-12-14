@@ -1,0 +1,55 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="checkbox-list px-8 py-4">
+    @if (Items != null)
+    {
+        <label class="checkbox">
+            <input type="checkbox" @bind="SelectAll">
+            <span></span>@SelectAllText
+        </label>
+        <div style="border-top: solid 1px #888; margin-bottom: 16px"></div>
+        foreach (var item in Items)
+        {
+            <label class="checkbox">
+                <input type="checkbox" checked="@item.Selected" @onchange="(e) => ChangeHandler(e, item)">
+                <span></span>@item.Name
+            </label>
+        }
+    }
+</div>
+
+@code
+{
+    [Parameter]
+    public IList<SelectableItem> Items { get; set; }
+
+    [Parameter]
+    public EventCallback OnChange { get; set; }
+
+    [Parameter]
+    public string SelectAllText { get; set; }
+
+    private bool _selectAll = false;
+    public bool SelectAll
+    {
+        get { return Items.All(r => r.Selected); }
+        set { _selectAll = value; OnSelectAll(value); }
+    }
+
+    private async void OnSelectAll(bool value)
+    {
+        foreach (var item in Items)
+        {
+            item.Selected = (bool)value;
+        }
+        await OnChange.InvokeAsync();
+    }
+
+    private async void ChangeHandler(ChangeEventArgs args, SelectableItem item)
+    {
+        _selectAll = false;
+        StateHasChanged();
+        item.Selected = (bool)args.Value;
+        await OnChange.InvokeAsync();
+    }
+}

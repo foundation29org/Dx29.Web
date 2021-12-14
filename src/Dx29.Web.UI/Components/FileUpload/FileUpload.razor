@@ -1,0 +1,103 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject IJSRuntime JS
+
+<div class="position-relative w-100 cursor-pointer">
+    <input class="position-absolute w-100 h-100 opacity-1" @ref="Input" type="file" multiple accept="@AcceptExtensions" @onchange="OnChange" />
+
+    <div class="p-4 border-light-primary min-h-150px" style="border: dashed 2px">
+        <div class="p-4">
+            <FileUploadItems Items="Items" OnCancelItem="OnCancelItem" />
+        </div>
+        <div class="text-center align-bottom bg-transparent">
+            @ChildContent
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public Dictionary<string, FileItem> FileItems { get; set; }
+
+    [Parameter]
+    public string Url { get; set; }
+
+    [Parameter]
+    public string AccessToken { get; set; }
+
+    [Parameter]
+    public string AcceptExtensions { get; set; }
+
+    [Parameter]
+    public List<string> ExistingNames { get; set; } = new List<string>();
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+
+    [Parameter]
+    public EventCallback<bool> OnReadyStateChanged { get; set; }
+
+    private IList<FileItem> Items => FileItems.Values.Where(r => !r.IsDeleted).ToList();
+
+    private ElementReference Input;
+
+    public bool IsReady { get; set; } = true;
+
+    private async Task OnChange(ChangeEventArgs args)
+    {
+        var infos = await JS.InvokeAsync<IList<FileInfo>>("fileUpload.onChange", Input);
+        foreach (var info in infos)
+        {
+            var item = FileItem.FromFileInfo(info, ExistingNames);
+            FileItems.Add(item.Id, item);
+            info.UniqueName = item.Name;
+        }
+        await SetReadyStateAsync();
+        await JS.InvokeAsync<string>("fileUpload.sendFiles", DotNetObjectReference.Create(this), Input, infos, Url, AccessToken);
+        await SetReadyStateAsync();
+    }
+
+    [JSInvokable]
+    public async Task ReadyStateChangeHandler(FileInfo info)
+    {
+        FileItems[info.Id].Merge(info);
+        StateHasChanged();
+        await SetReadyStateAsync();
+    }
+
+    [JSInvokable]
+    public async Task<bool> UploadProgressHandler(FileInfo info)
+    {
+        FileItems[info.Id].Merge(info);
+        StateHasChanged();
+        await SetReadyStateAsync();
+        return FileItems[info.Id].IsCanceled;
+    }
+
+    private void OnCancelItem(FileItem item)
+    {
+        if (item.Status.EqualsNoCase("Busy"))
+        {
+            item.Status = "Canceled";
+            item.IsCanceled = true;
+        }
+        else
+        {
+            item.Status = "Deleted";
+            item.IsDeleted = true;
+            ExistingNames.Remove(item.Name.ToLower());
+        }
+    }
+
+    private async Task SetReadyStateAsync()
+    {
+        bool isReady = !Items.Any(r => r.Status.EqualsNoCase("Busy"));
+        if (IsReady != isReady)
+        {
+            IsReady = isReady;
+            await OnReadyStateChanged.InvokeAsync(IsReady);
+        }
+    }
+}

@@ -1,0 +1,26 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<TD CssClass="@CssClass" HRef="@HRef" OnClick="@OnClick">
+    <div class="text-truncate-@Truncate font-weight-bold @CssText">@Text</div>
+</TD>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string HRef { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+
+    [Parameter]
+    public int Truncate { get; set; } = 1;
+
+    [Parameter]
+    public string CssText { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

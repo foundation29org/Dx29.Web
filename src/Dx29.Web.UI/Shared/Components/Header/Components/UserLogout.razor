@@ -1,0 +1,23 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inherits ComponentEx
+
+@inject SignOutSessionStateManager SignOutManager
+
+<div class="topbar-item">
+    <div class="btn btn-icon btn-icon-mobile w-auto btn-clean d-flex align-items-center btn-lg px-2" @onclick="BeginSignOut">
+        <i class="fas fa-sign-out-alt mr-3"></i>
+        <span class="text-dark-50 font-weight-bolder font-size-base d-none d-md-inline">@Localize["Logout"]</span>
+    </div>
+</div>
+
+@code
+{
+    private async Task BeginSignOut(MouseEventArgs args)
+    {
+        await SignOutManager.SetSignOutState();
+        NavigationManager.NavigateTo("authentication/logout");
+    }
+}

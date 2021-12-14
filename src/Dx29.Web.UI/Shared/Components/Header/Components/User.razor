@@ -1,0 +1,40 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@implements IDisposable
+
+@inject AppState AppState
+@inject IMessageService MessageServices
+
+@if (UserName != null)
+{
+    <div class="topbar-item">
+        <a href="/Preferences?no-track" hrefx="authentication/profile">
+            <div class="btn btn-icon btn-icon-mobile w-auto btn-clean d-flex align-items-center btn-lg px-2" id="kt_quick_user_toggle">
+                <i class="flaticon2-user mr-3"></i>
+                <span class="text-dark-50 font-weight-bolder font-size-base d-none d-md-inline">@UserName</span>
+            </div>
+        </a>
+    </div>
+}
+
+@code
+{
+    private string UserName = null;
+
+    protected override void OnInitialized()
+    {
+        UserName = AppState.UserName;
+        MessageServices.Subscribe<AppState>(this, OnNotification);
+    }
+
+    private void OnNotification(AppState appState, string message, object obj)
+    {
+        UserName = AppState.UserName;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        MessageServices.Unsubscribe<AppState>(this);
+    }
+}

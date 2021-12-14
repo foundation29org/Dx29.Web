@@ -1,0 +1,60 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<DashboardCard CssClassBody="min-h-200px max-h-275px" Name="Timeline" Title="@Localize["Symptom Chronology"]" Subtitle="@TotalCount" HRef="@HRef" IsLoading="IsLoading">
+    <DisclaimerTimeline IsVisible="ShowDisclaimer" Items="Items"/>
+    <div class="mx-2">
+        @if ((Items != null) && (Items?.Items.Count > 0))
+        {
+            <TimeLine Items="Items" />
+        }
+        else
+        {
+    <p>  @Localize["Please, add symptoms first."] </p>
+        }
+    </div>
+</DashboardCard>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private SymptomTimeline Items = null;
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0}/{1} symptoms.", Items.Items.Where(r => r.StartDate != null).Count(), Items.Items.Count()];
+
+    private bool ShowDisclaimer => Items.Items.Where(r=>r.StartDate==null).Count() > 0;
+
+
+    private bool IsLoading => (Items == null);
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadItemsAsync();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var timeline = await dx29.GetTimelineAsync(CaseId);
+        Items = timeline;
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+
+    private string HRef => $"/Timeline/{CaseId}";
+}

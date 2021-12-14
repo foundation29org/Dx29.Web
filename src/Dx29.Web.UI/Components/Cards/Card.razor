@@ -1,0 +1,108 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="card card-custom @CssStretch gutter-b @CssClass">
+    @if (CardHeader != null)
+    {
+        <div class="card-header px-6 @CssClassHeader">
+            <div class="card-title">
+                @if (CardBack != null)
+                {
+                    @CardBack
+                }
+                <a href="@HRef">
+                    <div class="d-flex flex-row align-items-center text-dark-75">
+                        @if (CardIcon != null)
+                        {
+                            <div class="mr-4" style="width: 30px">
+                                @CardIcon
+                            </div>
+                        }
+                        <div class="d-flex flex-column">
+                            @CardHeader
+                        </div>
+                    </div>
+                </a>
+            </div>
+            @if (!IsLoading && CardToolbar != null)
+            {
+                <div class="card-toolbar align-items-center">
+                    @CardToolbar
+                </div>
+            }
+        </div>
+    }
+    @if (CardBody != null)
+    {
+        <div class="card-body pb-4 px-6 pt-0 pb-14 @CssClassBody">
+            @if (IsLoading)
+            {
+                if (Timeout)
+                {
+                    <div class="d-flex flex-column align-items-center w-100" style="margin-top: 0px">
+                        <Spinner CssClass="spinner-xl" />
+                    </div>
+                }
+            }
+            else
+            {
+                @CardBody
+            }
+        </div>
+    }
+    @if (CardFooter != null)
+    {
+        if (!IsLoading)
+        {
+            @CardFooter
+        }
+    }
+</div>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string CssClassHeader { get; set; } = "py-2";
+
+    [Parameter]
+    public string CssClassBody { get; set; }
+
+    [Parameter]
+    public string Stretch { get; set; } // one, half, third, fourth
+
+    [Parameter]
+    public string HRef { get; set; }
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public RenderFragment CardBack { get; set; }
+
+    [Parameter]
+    public RenderFragment CardIcon { get; set; }
+
+    [Parameter]
+    public RenderFragment CardHeader { get; set; }
+
+    [Parameter]
+    public RenderFragment CardToolbar { get; set; }
+
+    [Parameter]
+    public RenderFragment CardBody { get; set; }
+
+    [Parameter]
+    public RenderFragment CardFooter { get; set; }
+
+    private bool Timeout = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        Timeout = true;
+    }
+
+    private string CssStretch => String.IsNullOrEmpty(Stretch) ? "" : Stretch.EqualsNoCase("one") ? "card-stretch" : $"card-stretch card-stretch-{Stretch.ToLower()}";
+}

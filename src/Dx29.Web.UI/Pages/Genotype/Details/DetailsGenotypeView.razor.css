@@ -1,0 +1,24 @@
+﻿table.table.bordered tbody tr td {
+}
+
+table.table.bordered tbody tr.row-hidden td {
+    border-bottom: 1px solid #eee;
+}
+
+.table-score tr {
+    border-bottom: 1px solid #eee;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #eee;
+}
+
+.border-right-radius-none {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.border-left-radius-none {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}

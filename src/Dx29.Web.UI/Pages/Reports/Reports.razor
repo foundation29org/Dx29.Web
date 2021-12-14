@@ -1,0 +1,162 @@
+﻿@page "/Reports/{caseId}"
+
+@inherits PageCase
+
+@inject IJSRuntime JSRuntime
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<Card CssClassBody="min-h-100px" IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Reports" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="@Localize["Reports"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardToolbar>
+        <ButtonAdd Text="@Localize["Add Report"]" OnClick="() => NavigateTo(AddNewHRef)" />
+    </CardToolbar>
+    <CardBody>
+        <DataTable IsEmpty="IsEmpty">
+            <DataTableEmpty>
+                <p>@Localize["No reports found"]</p>
+            </DataTableEmpty>
+            <DataTableHeader>
+                <THR>
+                    <th></th>
+                    <th>@Localize["Name"]</th>
+                    <th style="width: 30%">@Localize["Status"]</th>
+                    <th>@Localize["Created On"]</th>
+                    <th class="w-110px"></th>
+                    <th class="w-110px"></th>
+                </THR>
+            </DataTableHeader>
+            <DataTableBody>
+                <Repeater Items="Items" Context="item">
+                    <TRClick>
+
+                        <TDDocIcon CssClass="px-2" Extension="@item.GetExtension()" />
+
+                        <TDTextLabel Text="@item.Name" Label="@Localize.AsFileSize(item.Size)" IsDisable="@(!item.IsReady())" OnClick="() => OnItemClick(item)" />
+
+                        <TDStatus Status="@item.Status" ErrorDesc="@item.ErrorDesc" TextBusy="@Localize["Processing"]" TextReady="@Localize["Ready"]" TextError="@Localize["Error"]" />
+
+                        <TDTextLabel Text="@Localize.AsElapsedTime(item.CreatedOn)" Label="@Localize.ToShortDateString(item.CreatedOn)" />
+
+                        <TDButton CssClass="btn-light-primary w-120px" Text="@Localize["Download"]" OnClick="() => OnDownload(item)">
+                            <i class="fas fa-cloud-download-alt opa-75"></i>
+                        </TDButton>
+
+                        <TDButton CssClass="btn-light-danger w-100px" Text="@Localize["Delete"]" OnClick="() => OnDelete(item)">
+                            <i class="icon-nm flaticon2-cross"></i>
+                        </TDButton>
+
+                    </TRClick>
+                </Repeater>
+            </DataTableBody>
+        </DataTable>
+    </CardBody>
+</Card>
+
+<DialogConfirm @ref="Dialog" Title="@Localize["Confirm Delete Report"]" OnAccept="OnConfirmDelete">
+    <h5>@Localize["Are you sure you want to delete report '{0}'?", Current?.Name]</h5>
+    <p></p>
+</DialogConfirm>
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Downloading document, please wait..."]" />
+
+@code
+{
+    private DialogConfirm Dialog;
+    private DialogBusy DialogBusy;
+
+    private IList<ReportModel> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private bool IsEmpty => Items?.Count == 0;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0} reports", Items.Count];
+
+    private ReportModel Current = null;
+
+    protected override void OnInitialized()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        base.OnInitialized();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CaseId != null)
+        {
+            await LoadItemsAsync();
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var model = await dx29.GetReportsAsync(CaseId);
+        Items = model.OrderByDescending(r => r.CreatedOn).ToList();
+    }
+
+    private void OnItemClick(ReportModel item)
+    {
+        NavigateTo(DetailsHRef(item.Id));
+    }
+
+    private async Task OnDownload(ReportModel item)
+    {
+        await DialogBusy.OpenAsync();
+
+        var bytes = await dx29.FileDownloadBytesAsync(CaseId, ResourceGroupType.Reports, "Medical", item.Id);
+
+        await JSRuntime.InvokeVoidAsync(
+              "downloadFromByteArray",
+              new
+              {
+                  ByteArray = bytes,
+                  FileName = item.Name,
+                  ContentType = ContentTypes.FromFilename(item.Name)
+              });
+
+        var delay = bytes.Length / 7500;
+        await Task.Delay(500 + delay);
+
+        await DialogBusy.CloseAsync();
+    }
+
+    private void OnDelete(ReportModel item)
+    {
+        Current = item;
+        Dialog.Open();
+    }
+    private async void OnConfirmDelete()
+    {
+        await dx29.DeleteReportAsync(CaseId, Current.Id);
+        await LoadItemsAsync();
+        await AppState.RefreshCurrentCaseAsync();
+        StateHasChanged();
+    }
+
+    override public void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+    private string AddNewHRef => $"/Reports/AddNew/{CaseId}?no-track";
+    private string DetailsHRef(string id) => $"/Reports/{CaseId}/{id}";
+}

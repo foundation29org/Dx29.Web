@@ -1,0 +1,118 @@
+﻿@page "/Preferences"
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject AppState AppState
+@inject NavigationService Navigation
+
+<div class="row">
+    <div class="offset-xl-2 col-xl-8">
+        <Card>
+            <CardIcon>
+                <i class="icon-2x flaticon2-user text-primary"></i>
+            </CardIcon>
+            <CardHeader>
+                <CardTitle IsLoading="IsLoading" Title="@Localize["Preferences"]" Subtitle="@Subtitle" />
+            </CardHeader>
+            <CardBody>
+                @if (editContext != null)
+                {
+                    <div class="p-4">
+                        <EditForm EditContext="@editContext">
+                            <DataAnnotationsValidator />
+
+                            <div class="row">
+                                <div class="col-xl-6">
+                                    <div class="form-group">
+                                        <label>@Localize["First Name"]</label>
+                                        <InputText Class="form-control form-control-solid form-control-lg" name="Name" placeholder="Patient Name" autocomplete="off" @bind-Value="Model.FirstName" />
+                                        <div class="mt-2 text-danger">
+                                            <ValidationMessage For="() => Model.FirstName" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-6">
+                                    <div class="form-group">
+                                        <label>@Localize["Last Name"]</label>
+                                        <InputText Class="form-control form-control-solid form-control-lg" name="Name" placeholder="Patient Name" autocomplete="off" @bind-Value="Model.LastName" />
+                                        <div class="mt-2 text-danger">
+                                            <ValidationMessage For="() => Model.LastName" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-xl-6">
+                                    <div class="form-group">
+                                        <label>@Localize["Language"]</label>
+                                        <InputSelect class="form-control form-control-solid form-control-lg" @bind-Value="@Model.Language">
+                                            <option value="en-US">@Localize["English"]</option>
+                                            <option value="es-ES">@Localize["Spanish"]</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </EditForm>
+                    </div>
+                }
+            </CardBody>
+            <CardFooter>
+                <hr class="mx-8 my-0" />
+                <div class="p-8 pt-0">
+                    <CardAcceptCancel LabelAccept="@Localize["Save changes"]" LabelCancel="@Localize["Cancel"]" OnAccept="OnAccept" OnCancel="OnCancel" />
+                </div>
+            </CardFooter>
+        </Card>
+    </div>
+</div>
+
+@code
+{
+    private EditContext editContext = null;
+
+    private UserPreferences Model = null;
+
+    private bool IsLoading => Model == null;
+
+    private string Subtitle => IsLoading ? Localize["Loading..."] : Localize["Manage your info and preferences"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.CurrentCase = null;
+        Model = await dx29.GetPreferencesAsync();
+        editContext = new EditContext(Model);
+    }
+
+    private async void OnAccept()
+    {
+        if (editContext.Validate())
+        {
+            var preferences = await dx29.SetPreferencesAsync(Model);
+            await Localize.SetCultureAsync(preferences.Language);
+            AppState.UserName = preferences.UserName;
+            GoBack();
+        }
+    }
+
+    private void OnCancel()
+    {
+        GoBack();
+    }
+
+    private void GoBack(bool forceLoad = false)
+    {
+        if (Navigation.CanGoBack)
+        {
+            Navigation.GoBack(forceLoad);
+        }
+        else
+        {
+            NavigateTo(BackHRef, forceLoad);
+        }
+    }
+
+    private string BackHRef => $"/Patients";
+}

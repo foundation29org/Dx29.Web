@@ -1,0 +1,36 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@inject Dx29Client dx29
+@inject LocalizationService Localize
+
+<div class="topbar-item">
+    <Dropdown @ref="Dropdown" CssClass="btn-clean text-dark-50 font-weight-bolder w-100px" Caption="@SelectedItem">
+        @foreach ((var id, var name) in GetLanguages())
+        {
+            <DropdownItem OnClick="() => OnClick(id)">@name</DropdownItem>
+        }
+    </Dropdown>
+</div>
+
+@code
+{
+    private Dropdown Dropdown = null;
+
+    private string SelectedItem => Localize.Culture.DisplayName;
+
+    private IEnumerable<(string, string)> GetLanguages()
+    {
+        yield return ("en-US", "English");
+        yield return ("es-ES", "Español");
+    }
+
+    private async void OnClick(string lang)
+    {
+        Dropdown.Close();
+        var preferences = await dx29.GetPreferencesAsync();
+        preferences.Language = lang;
+        await dx29.SetPreferencesAsync(preferences);
+        await Localize.SetCultureAsync(lang);
+        StateHasChanged();
+    }
+}

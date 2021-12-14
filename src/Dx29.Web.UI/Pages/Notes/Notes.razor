@@ -1,0 +1,128 @@
+﻿@page "/Notes/{caseId}"
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+
+<Card CssClassBody="min-h-100px" IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Notes" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="@Localize["Notes"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardToolbar>
+        <ButtonAdd Text="@Localize["Add Note"]" OnClick="() => OnAddClick()" />
+    </CardToolbar>
+    <CardBody>
+        <DataTable IsEmpty="IsEmpty">
+            <DataTableEmpty>
+                <p>@Localize["No notes found"]</p>
+            </DataTableEmpty>
+            <DataTableHeader>
+                <THR>
+                    <th></th>
+                    <th class="w-140px">@Localize["Last Update"]</th>
+                    <th>@Localize["Text"]</th>
+                    <th class="w-140px">@Localize["Created On"]</th>
+                    <th class="w-110px"></th>
+                    <th class="w-110px"></th>
+                </THR>
+            </DataTableHeader>
+            <DataTableBody>
+                <Repeater Items="Items" Context="item">
+                    <TRClick>
+
+                        <TDDocIcon CssClass="px-2" Extension=".txt" />
+
+                        <TDTextLabel Text="@Localize.AsShortDateTime(item.UpdatedOn)" Label="@Localize.AsElapsedTime(item.UpdatedOn)" OnClick="() => OnEdit(item)" />
+
+                        <TDText Text="@item.Name" Truncate="2" OnClick="() => OnEdit(item)" />
+
+                        <TDTextLabel Text="@Localize.AsShortDateTime(item.CreatedOn)" Label="@Localize.AsElapsedTime(item.CreatedOn)" OnClick="() => OnEdit(item)" />
+
+                        <TDButton CssClass="btn-light-primary w-110px" Text="@Localize["Edit"]" OnClick="() => OnEdit(item)">
+                            <i class="icon-nm flaticon2-edit"></i>
+                        </TDButton>
+
+                        <TDButton CssClass="btn-light-danger w-110px" Text="@Localize["Delete"]" OnClick="() => OnDelete(item)">
+                            <i class="icon-nm flaticon2-cross"></i>
+                        </TDButton>
+
+                    </TRClick>
+                </Repeater>
+            </DataTableBody>
+        </DataTable>
+    </CardBody>
+</Card>
+
+<NotesDialog @ref="NotesDialog" CaseId="@CaseId" OnAccept="OnAccept" />
+
+<DialogConfirm @ref="Dialog" Title="@Localize["Confirm Delete Note"]" OnAccept="OnConfirmDelete">
+    <h5>@Localize["Are you sure you want to delete this note?"]</h5>
+    <p></p>
+</DialogConfirm>
+
+@code
+{
+    private NotesDialog NotesDialog;
+    private DialogConfirm Dialog;
+
+    private IList<NoteModel> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private bool IsEmpty => Items?.Count == 0;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0} notes", Items.Count];
+
+    private NoteModel Current = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CaseId != null)
+        {
+            await LoadItemsAsync();
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var model = await dx29.GetNotesAsync(CaseId);
+        Items = model.OrderByDescending(r => r.UpdatedOn).ToList();
+    }
+
+    private void OnAddClick()
+    {
+        NotesDialog.OpenNew();
+    }
+
+    private async void OnEdit(NoteModel item)
+    {
+        await NotesDialog.OpenEditAsync(item.Id);
+    }
+
+    private async void OnAccept()
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private void OnDelete(NoteModel item)
+    {
+        Current = item;
+        Dialog.Open();
+    }
+    private async void OnConfirmDelete()
+    {
+        await dx29.DeleteNoteAsync(CaseId, Current.Id);
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+}

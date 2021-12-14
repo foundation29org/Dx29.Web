@@ -1,0 +1,17 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@inject LocalizationService Localize
+
+<Card>
+    <CardIcon>
+        <i class="icon-2x far fa-frown text-primary"></i>
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Page not found"]" Subtitle="" />
+    </CardHeader>
+    <CardBody>
+        <div class="py-4">
+            <h5>@Localize["Sorry, there's nothing at this address."]</h5>
+        </div>
+    </CardBody>
+</Card>

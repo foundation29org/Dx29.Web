@@ -1,0 +1,105 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+<DataTable>
+    <DataTableHeader>
+        <th class="">@GetGroupLabel(GroupType, GroupName, false)</th>
+        <th style="width: 128px"></th>
+        <th style="width: 48px">@Localize["Patient"]</th>
+        <th style="width: 48px">@Localize["Disease"]</th>
+        <th style="width: 48px"></th>
+    </DataTableHeader>
+    <DataTableBody>
+        <Repeater Items="InfoSymptoms" Context="item">
+            <tr>
+                <td>
+                    <a href="#" class="text-truncate-1" @onclick="() => OnSymptomClick(item)" @onclick:preventDefault>
+                        @item.Name
+                    </a>
+                </td>
+                <td style="text-align: center;">
+                    @GetGroupLabel(GroupType, item.Frequency.Name, true)
+                </td>
+                <td style="text-align: center;">
+                    @if (item.HasPatient)
+                    {
+                        <i class="icon-md flaticon2-check-mark text-success"></i>
+                    }
+                    else
+                    {
+                        <i class="icon-md flaticon2-cross text-danger opa-75"></i>
+                    }
+                </td>
+                <td style="text-align: center;">
+                    @if (item.HasDisease)
+                    {
+                        <i class="icon-md flaticon2-check-mark text-success"></i>
+                    }
+                    else
+                    {
+                        <i class="icon-md flaticon2-cross text-danger opa-75"></i>
+                    }
+                </td>
+                <td style="text-align: center;">
+                    @if (item != null)
+                    {
+                        string text = GetTextInfo(item);
+                        <span style="cursor:pointer" data-toggle="tooltip" title=@text>
+                            <i class="icon-md fas fa-info-circle text-primary opa-75"></i>
+                        </span>
+                    }
+                </td>
+            </tr>
+        </Repeater>
+    </DataTableBody>
+</DataTable>
+
+@*<Modal2 @ref="ModalHPONav" Accept="Ok" OnAccept="OnHPOAccept">
+        <HPONavigator @ref="HPONav" />
+    </Modal2>*@
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string GroupName { get; set; }
+
+    [Parameter]
+    public string GroupType { get; set; }
+
+    [Parameter]
+    public List<DiffSymptom> InfoSymptoms { get; set; }
+
+    //private Modal2 ModalHPONav;
+    //private HPONavigator HPONav;
+
+    private IList<Symptom> CaseSymptoms = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CaseSymptoms = await dx29.GetSymptomsAsync(CaseId);
+    }
+
+    private async Task OnSymptomClick(DiffSymptom model)
+    {
+        var selectedItems = CaseSymptoms.Select(r => r.Id.ToUpper()).ToList();
+
+        var terms = await dx29.GetHpoTermsAsync(model.Id);
+        if (terms != null)
+        {
+            var term = terms.Values?.FirstOrDefault()?.FirstOrDefault();
+            //HPONav.Initialize(term, selectedItems);
+            //ModalHPONav.Open();
+        }
+    }
+
+    private void OnHPOAccept()
+    {
+
+    }
+}

@@ -1,0 +1,89 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+<MasterDetail Items="Items" TItem="SymptomDesc" Context="item" OnItemClick="OnItemClick">
+    <Header>
+        <h3>@Localize["Symptoms"]</h3>
+        @if (Items.Count > 0)
+        {
+            <div class="text-truncate-2 opa-75 mb-4">@Localize["We have found the following symptoms in the document. Please, review and select those applicable."]</div>
+        }
+        else
+        {
+            <div class="text-truncate-2 opa-75 mb-4">@Localize["No symptoms found in the document."]</div>
+        }
+    </Header>
+    <CheckboxTemplate>
+        <label class="checkbox">
+            <input type="checkbox" @bind="@item.IsSelected" @onclick="OnItemChanged" />
+            <span></span>
+        </label>
+    </CheckboxTemplate>
+    <ItemTemplate>
+        <div class="d-block">
+            <div class="text-truncate-1 font-weight-bolder">@item.Name</div>
+            <div class="text-truncate-1 opa-75">@item.Desc</div>
+        </div>
+    </ItemTemplate>
+    <ContentHeader>
+        @if (Current != null)
+        {
+            <h3>@Current.Name</h3>
+            <div class="text-truncate-2 opa-75 mb-4">@Current.Desc</div>
+        }
+    </ContentHeader>
+    <Content>
+        <hr />
+        @if (CurrentSegments != null)
+        {
+            <DocView Segments="CurrentSegments" SelectedTerms="SelectedTerms" Term="@Current?.Id"></DocView>
+        }
+    </Content>
+</MasterDetail>
+
+@code
+{
+    [Parameter]
+    public DocAnnotations Annotations { get; set; }
+
+    [Parameter]
+    public IList<SymptomDesc> Items { get; set; }
+
+    private SymptomDesc Current = null;
+    private IList<SegAnnotations> CurrentSegments = null;
+
+    private readonly IList<SelectableItem> SelectedTerms = SelectableItem.CreateList(true, "Symptom");
+
+    public bool IsDirty { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Items != null)
+        {
+            Current = Items.FirstOrDefault();
+            CurrentSegments = GetSegments();
+        }
+    }
+
+    public void OnItemClick(SymptomDesc item)
+    {
+        Current = item;
+        CurrentSegments = GetSegments();
+    }
+
+    private IList<SegAnnotations> GetSegments()
+    {
+        if (Current != null)
+        {
+            var segs = Current.Sources.First().Segments;
+            return Annotations.Segments.Where(r => segs.Contains(r.Id)).ToList();
+        }
+        return Array.Empty<SegAnnotations>();
+    }
+
+    private void OnItemChanged()
+    {
+        IsDirty = true;
+    }
+}

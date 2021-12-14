@@ -1,0 +1,230 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+@inject Dx29Client dx29
+
+<h3>@Localize["Patient Data"]</h3>
+<h4 class="mb-12 text-black-50">@Localize["Enter patient details"]</h4>
+
+<EditForm EditContext="@editContext">
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label>@Localize["Patient Name"] *</label>
+        <InputText Class="form-control form-control-solid form-control-lg" name="Name" placeholder="Patient Name" autocomplete="off" @bind-Value="Model.Name" />
+        <div class="mt-2 text-danger">
+            <ValidationMessage For="() => Model.Name" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="form-group">
+                <label>@Localize["Birth Date"] *</label>
+                <InputDate class="form-control form-control-solid form-control-lg" @bind-Value="@Model.BirthDate" />
+                <div class="mt-2 text-danger">
+                    <ValidationMessage For="() => Model.BirthDate" />
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="form-group">
+                <label>@Localize["Gender"] *</label>
+                <InputSelect class="form-control form-control-solid form-control-lg" @bind-Value="@Model.Gender">
+                    <option value="@Gender.Unknown">@Localize["Unknown"]</option>
+                    <option value="@Gender.Male">@Localize["Male"]</option>
+                    <option value="@Gender.Female">@Localize["Female"]</option>
+                </InputSelect>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="form-group">
+                <label>@Localize["Diagnosed disease"]</label>
+                <InputRadioGroup ValueChanged="@((e) => OnInputRadioValueChanged(e))" TValue="int" ValueExpression="() => selectedDiagnosed" Value="@selectedDiagnosed">
+                    <div class="form-check">
+                        <InputRadio Value=0 class="form-check-input" id="selectedDiagnosed-0" />
+                        <label class="form-check-label" for="selectedDiagnosed-0">@Localize["Not diagnosed yet"]</label>
+                    </div>
+                    <div class="form-check">
+                        <InputRadio Value=1 class="form-check-input" id="selectedDiagnosed-1" />
+                        <label class="form-check-label" for="selectedDiagnosed-1">@Localize["Select disease"]</label>
+                    </div>
+                </InputRadioGroup>
+            </div>
+        </div>
+    </div>
+    @if (selectedDiagnosed == 1)
+    {
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="form-group">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="pr-lg-16 w-100">
+                            <DxTypeahead TItem="TermDesc" TValue="TermDesc" Value="SelectedTerm" SearchMethod="GetTermsAsync" ValueChanged="OnValueChanged" ValueExpression="@(() => SelectedTerm)" placeholder="@Localize["Search disease (i.e: Dravet syndrome ...)"]" TextAreaRows="1">
+                                <SelectedTemplate Context="term">
+                                    @term.Name
+                                </SelectedTemplate>
+                                <ResultTemplate Context="term">
+                                    <div style="border-bottom: solid 0px #ccc">
+                                        <h6 class="text-truncate-1 font-weight-bolder m-0">@term.Name</h6>
+                                        <div class="text-truncate-1 text-sm-left">@term.Desc</div>
+                                    </div>
+                                </ResultTemplate>
+                                <FooterTemplate>
+                                    @if (FoundTermsCount > 10)
+                                    {
+                                        <hr class="mt-0 mb-2" />
+                                        <div style="border-bottom: solid 0px #ccc">
+                                            <div class="text-danger font-weight-bolder" style="padding-left: 0px; padding-bottom: 4px; font-style: italic">More than 10 results found...</div>
+                                        </div>
+                                    }
+                                </FooterTemplate>
+                            </DxTypeahead>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (SelectedTermsDesc.Count > 0)
+        {
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="form-group">
+                        <div class="overflow-auto">
+                            <Table CssClass="compact">
+                                <TableBody>
+                                    <Repeater Items="SelectedTermsDesc" Context="itemSelectedDesc">
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <h5 class="text-truncate-1 font-weight-bolder m-0">@itemSelectedDesc.Name</h5>
+                                                    <div class="text-truncate-1 text-sm-left">@itemSelectedDesc.Desc</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn btn-icon btn-clean btn-sm" @onclick="() => DeleteItem(itemSelectedDesc.Id)">
+                                                    <i class="flaticon2-delete icon-sm text-danger opacity-80"></i>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </Repeater>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <div class="row mt-30">
+        <div class="col-xl-12">
+            <p class="text-black-50">@Localize["Fields marked with an asterisk (*) are mandatory."]</p>
+        </div>
+    </div>
+
+</EditForm>
+
+@code
+{
+    [Parameter]
+    public PatientInfoModel Model { get; set; }
+
+    private EditContext editContext;
+
+    private int selectedDiagnosed = 0;
+
+    private TermDesc SelectedTerm = null;
+    private IList<TermDesc> SelectedTermsDesc;
+
+    private int FoundTermsCount = 0;
+
+    protected async override Task OnInitializedAsync()
+    {
+        editContext = new EditContext(Model);
+        await LoadDiseaseInfoAsync();
+    }
+    private async Task LoadDiseaseInfoAsync()
+    {
+        SelectedTermsDesc = new List<TermDesc>();
+        foreach (var diseaseId in Model.DiseasesIds)
+        {
+            var terms = await dx29.GetTermsAsync(diseaseId);
+            var term = terms[diseaseId].FirstOrDefault();
+            TermDesc newTerm = new TermDesc
+            {
+                Id = diseaseId,
+                Name = term.Name,
+                Desc = term.Desc,
+                Categories = term.Categories,
+                IsSelected = true
+            };
+            SelectedTermsDesc.Add(newTerm);
+        }
+        if (SelectedTermsDesc.Count > 0)
+        {
+            OnInputRadioValueChanged(1);
+        }
+        StateHasChanged();
+    }
+
+    private void HandleValidSubmit()
+    {
+    }
+
+    public bool Validate()
+    {
+        return editContext.Validate();
+    }
+    public bool IsSelectedGenderUnknown()
+    {
+        if (Model.Gender == Gender.Unknown.ToString())
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private async Task<IEnumerable<TermDesc>> GetTermsAsync(string query)
+    {
+        return await dx29.SearchDiseasesAsync(query);
+    }
+
+    public void OnValueChanged(TermDesc term)
+    {
+        if (term != null)
+        {
+            //DeleteItem(term.Id);
+            // For Now: Save ONLY ONE Disease
+            Model.DiseasesIds = new List<string>();
+            SelectedTermsDesc = new List<TermDesc>();
+            Model.DiseasesIds.Add(term.Id);
+            SelectedTermsDesc.Add(term);
+        }
+    }
+
+    public void DeleteItem(string id)
+    {
+        var term = Model.DiseasesIds.Where(r => r == id).FirstOrDefault();
+        var termDesc = SelectedTermsDesc.Where(r => r.Id == id).FirstOrDefault();
+        if (term != null)
+        {
+            Model.DiseasesIds.Remove(term);
+            SelectedTermsDesc.Remove(termDesc);
+        }
+    }
+
+    public void OnInputRadioValueChanged(int inputRadioValue)
+    {
+        selectedDiagnosed = inputRadioValue;
+        if (selectedDiagnosed == 0)
+        {
+            Model.DiseasesIds = new List<string>();
+            SelectedTermsDesc = new List<TermDesc>();
+        }
+        StateHasChanged();
+    }
+}

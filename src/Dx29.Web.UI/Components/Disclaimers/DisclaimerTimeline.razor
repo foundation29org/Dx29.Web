@@ -1,0 +1,29 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@if (IsVisible)
+{
+    <div class="alert alert-custom alert-light-primary show p-4" role="alert">
+        <div class="mr-1"><i class="flaticon2-information"></i></div>
+        <div class="font-weight-normal">@Localize["You have {0} symptoms left to complete your chronology.", numberSymptomsNoOrdered] </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public bool IsVisible { get; set; } = true;
+
+    [Parameter]
+    public SymptomTimeline Items { get; set; } = null;
+
+    private int numberSymptomsNoOrdered = 0;
+
+
+    protected override void OnInitialized()
+    {
+        numberSymptomsNoOrdered = Items.Items.Where(r => r.StartDate == null).Count();
+    }
+    
+}

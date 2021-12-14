@@ -1,0 +1,73 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+<td class="w-140px @CssClass">
+    @if (Status.EqualsNoCase("Ready"))
+    {
+        <div class="px-4 d-flex w-120px">
+            <div class="icon-lg flaticon2-check-mark text-success"></div>
+            <div class="pl-4 pr-6" style="padding-top: 5px">@TextReady</div>
+        </div>
+    }
+    else if (Status.EqualsNoCase("Error"))
+    {
+        <div class="px-4 d-flex align-items-center" title="@GetErrorTitle()">
+            <div class="icon-lg flaticon2-warning text-danger"></div>
+            <div class="d-block">
+                <div class="pl-4 text-danger">@TextError</div>
+                <div class="pl-4 text-danger text-truncate-1 font-size-sm opa-75">@ErrorDesc</div>
+                @if (ErrorCode != null)
+                {
+                    if (ErrorCode == "WRN_EXOMISER_102")
+                    {
+                        <div class="pl-4 text-danger text-truncate-1 font-size-sm opa-75">@Localize["Use Advanced/Multisample VCFs menu for execute this analysis"]</div>
+                    }
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="px-4 d-flex w-120px">
+            <div class="spinner spinner-track spinner-primary spinner-xl"></div>
+            <div class="pl-10">@TextBusy</div>
+        </div>
+    }
+</td>
+
+@code
+{
+    [Parameter]
+    public string CssClass { get; set; }
+
+    [Parameter]
+    public string Status { get; set; }
+
+    [Parameter]
+    public string ErrorDesc { get; set; }
+
+    [Parameter]
+    public string TextBusy { get; set; }
+    [Parameter]
+    public string TextReady { get; set; }
+    [Parameter]
+    public string TextError { get; set; }
+
+    [Parameter]
+    public string ErrorCode { get; set; }
+
+    private string GetErrorTitle()
+    {
+        string errorTitle = ErrorDesc;
+        if (ErrorCode != null)
+        {
+            if (ErrorCode == "WRN_EXOMISER_102")
+            {
+                errorTitle = errorTitle + "\n" + Localize["Use Advanced/Multisample VCFs menu for execute this analysis"];
+            }
+
+        }
+        return errorTitle;
+    }
+}

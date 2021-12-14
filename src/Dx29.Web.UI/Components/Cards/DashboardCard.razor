@@ -1,0 +1,70 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject NavigationManager NavigationManager
+
+<Card CssClassHeader="card-title-hover pt-2 pb-1" CssClassBody="min-h-150px" Stretch="one" IsLoading="IsLoading" HRef="@HRef">
+    <CardIcon>
+        <KnownIcon Name="@Name" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="@Title" Subtitle="@Subtitle" />
+    </CardHeader>
+    <CardToolbar>
+        @if (AddHRef != null || OnAddClick.HasDelegate)
+        {
+            <div class="btn btn-clean btn-light-primary btn-xs btn-icon ml-2" @onclick="AddClickHandler">
+                <i class="flaticon2-add-1"></i>
+            </div>
+        }
+        <a href="@HRef" class="btn btn-clean btn-light-primary btn-xs btn-icon ml-2">
+            <i class="flaticon2-right-arrow"></i>
+        </a>
+    </CardToolbar>
+    <CardBody>
+        <div class="overflow-auto @CssClassBody">
+            @ChildContent
+        </div>
+    </CardBody>
+</Card>
+
+@code
+{
+    [Parameter]
+    public string CssClassBody { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Subtitle { get; set; }
+
+    [Parameter]
+    public string HRef { get; set; }
+
+    [Parameter]
+    public string AddHRef { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public EventCallback OnAddClick { get; set; }
+
+    private async void AddClickHandler()
+    {
+        if (AddHRef != null)
+        {
+            NavigationManager.NavigateTo(AddHRef);
+        }
+        else if (OnAddClick.HasDelegate)
+        {
+            await OnAddClick.InvokeAsync();
+        }
+    }
+}

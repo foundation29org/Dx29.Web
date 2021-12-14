@@ -1,0 +1,59 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<DashboardCard CssClassBody="min-h-200px max-h-275px" Name="Symptoms" Title="@Localize["Symptoms"]" Subtitle="@TotalCount" HRef="@HRef" IsLoading="IsLoading">
+    <DataTable CssClass="compact">
+        <DataTableBody>
+            <Repeater Items="Items" Context="item">
+                <tr>
+                    <TDIcon>
+                        <KnownIcon Name="Symptoms" Type="Item" />
+                    </TDIcon>
+                    <TDText Text="@item.Name" />
+                </tr>
+            </Repeater>
+        </DataTableBody>
+    </DataTable>
+</DashboardCard>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    private IList<SymptomDesc> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0} symptoms", Items.Count];
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadItemsAsync();
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var symptoms = await dx29.GetSymptomsDescAsync(CaseId);
+        Items = symptoms.Where(r => r.IsSelected).ToList();
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+
+    private string HRef => $"/Symptoms/{CaseId}";
+}

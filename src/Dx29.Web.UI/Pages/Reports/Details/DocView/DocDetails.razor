@@ -1,0 +1,73 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject IJSRuntime JS
+@inject DocumentService DocService
+
+<div id="@Id" class="modal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="CancelHandler">
+                    <i class="flaticon2-cross"></i>
+                </button>
+                <div class="d-block">
+                    @if (EntityDesc != null)
+                    {
+                        <h3>@EntityDesc.Name</h3>
+                        <p>@EntityDesc.Desc</p>
+                    }
+                    else
+                    {
+                        <h3>No description found</h3>
+                    }
+                    <hr />
+                    @if (EntityList != null)
+                    {
+                        var term = EntityList.Where(r => r.Id.StartsWith("HP:")).Select(r => r.Id).FirstOrDefault();
+                        if (term != null)
+                        {
+                            <h6>@term</h6>
+                        }
+                        term = EntityList.Where(r => r.Id.StartsWith("UMLS:")).Select(r => r.Id).FirstOrDefault();
+                        if (term != null)
+                        {
+                            <h6>@term</h6>
+                        }
+                        term = EntityList.Where(r => r.Id.StartsWith("OMIM:")).Select(r => r.Id).FirstOrDefault();
+                        if (term != null)
+                        {
+                            <h6>@term</h6>
+                        }
+                        <hr />
+                        <div class="text-right">Score: @Annotation.ConfidenceScore.ToString("0.00")</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    public string Id = $"id{Guid.NewGuid()}".Replace("-", "");
+
+    private Annotation Annotation;
+
+    private DocEntity EntityDesc = null;
+    private IList<DocEntity> EntityList = null;
+
+    public async Task OpenAsync(Annotation annotation)
+    {
+        Annotation = annotation;
+        var docEntities = await DocService.GetDocEntitiesAsync(annotation);
+        EntityDesc = docEntities.Where(r => !r.IsEmpty).FirstOrDefault();
+        EntityList = docEntities;
+        StateHasChanged();
+        await JS.InvokeVoidAsync("modalJS.open", $"#{Id}");
+    }
+
+    private async void CancelHandler()
+    {
+        await JS.InvokeVoidAsync("modalJS.close", $"#{Id}");
+    }
+}

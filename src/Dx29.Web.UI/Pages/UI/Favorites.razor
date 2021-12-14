@@ -1,0 +1,24 @@
+﻿@page "/UI/Favorite"
+
+<Card>
+    <CardHeader>
+        <CardTitle Title="Favorites" />
+    </CardHeader>
+    <CardBody>
+
+        <table>
+            @for (int n = 0; n < 10; n++)
+            {
+                <tr>
+                    <TDFavorite IsSelected="@(n < 5)" />
+                    <TDTextLabel Text="@Lorem.Generate(2, 10)" Label="@Lorem.Generate(10, 20)" />
+                </tr>
+            }
+        </table>
+
+    </CardBody>
+</Card>
+
+@code
+{
+}

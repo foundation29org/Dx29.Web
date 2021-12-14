@@ -1,0 +1,106 @@
+﻿@page "/UI/Modals"
+
+@inherits ComponentEx
+
+<Button CssClass="btn-primary" OnClick="OnClick1">
+    Modal Sample
+</Button>
+<Button CssClass="btn-primary" OnClick="OnClick2">
+    Modal Empty
+</Button>
+<Button CssClass="btn-primary" OnClick="OnClick3">
+    Dialog Busy
+</Button>
+<Button CssClass="btn-primary" OnClick="OnClick4">
+    Dialog Confirm
+</Button>
+
+
+<Modal @ref="Dialog1" CssClassModal="modal-xl" IsCancelEnabled="false">
+    <ModalIcon>
+        <i class="icon-2x flaticon2-information text-primary"></i>
+    </ModalIcon>
+    <ModalHeader>
+        <ModalTitle Title="Modal Title" Subtitle="Subtitle" />
+    </ModalHeader>
+    <ModalBody>
+        <div>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus orci velit, dignissim nec sagittis a, bibendum vel justo. Duis vitae odio eu metus molestie placerat in quis nisl. Nunc eget leo et nisl scelerisque ultricies ac sit amet dui. In faucibus molestie ullamcorper. Ut libero nisl, placerat non volutpat a, lobortis et mauris. Donec egestas quam et quam pharetra bibendum congue turpis tempor. Morbi risus risus, lacinia sollicitudin ullamcorper in, sollicitudin eget purus. Morbi nec ligula est. Donec quis placerat velit. Etiam a eros elit. Proin libero lectus, suscipit id facilisis ut, faucibus vel dolor. Mauris laoreet ultrices arcu, et fermentum tortor tempus ut.</p>
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <ModalAcceptCancel Accept="@Localize["Accept"]" Cancel="@Localize["Cancel"]" OnAccept="OnAccept" OnCancel="OnCancel" />
+    </ModalFooter>
+</Modal>
+
+<Modal @ref="Dialog2" IsCloseVisible="false" IsCancelEnabled="true">
+    <ModalBody>
+        <p>Press ESC to exit</p>
+    </ModalBody>
+</Modal>
+
+<DialogBusy @ref="Dialog3" Message="Creating user, please wait..." />
+
+<DialogConfirm @ref="Dialog4" Title="Confirm delete item">
+    <h5>Are you sure you want to delete this item?</h5>
+    @*<h5>Data will be permanentelly deleted</h5>*@
+</DialogConfirm>
+
+<div>
+    <p>@Message</p>
+</div>
+
+@code
+{
+    private Modal Dialog1;
+    private Modal Dialog2;
+
+    private DialogBusy Dialog3;
+    private DialogConfirm Dialog4;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) Dialog1.Open();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(15000);
+        Dialog1.Close();
+    }
+
+    private void OnClick1()
+    {
+        Dialog1.Open();
+    }
+
+    private void OnClick2()
+    {
+        Dialog2.Open();
+    }
+
+    private async void OnClick3()
+    {
+        await Dialog3.OpenAsync();
+        await Task.Delay(5000);
+        await Dialog3.CloseAsync();
+    }
+
+    private void OnClick4()
+    {
+        Dialog4.Open();
+    }
+
+    private void OnAccept()
+    {
+        Dialog1.Close();
+        Message = "Accept";
+    }
+
+    private void OnCancel()
+    {
+        Message = "Cancel";
+    }
+
+    private string Message;
+}

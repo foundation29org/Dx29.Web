@@ -1,0 +1,16 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<Button CssClass="btn-light-primary min-w-160px" OnClick="OnClick">
+    <i class="icon-lg far fa-save"></i>
+    <span>&nbsp;</span>
+    <span>@Text</span>
+</Button>
+
+@code
+{
+    [Parameter]
+    public string Text { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}

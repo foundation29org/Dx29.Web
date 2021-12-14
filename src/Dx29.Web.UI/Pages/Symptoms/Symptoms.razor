@@ -1,0 +1,343 @@
+﻿@page "/Symptoms/{caseId}"
+
+@inherits PageCase
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<Card IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" ConfirmBackNavigationAsync="OnConfirmBackNavigationAsync" />
+    </CardBack>
+    <CardIcon>
+        <KnownIcon Name="Symptoms" Type="Header" />
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="@Localize["Symptoms"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardToolbar>
+        <ButtonSave Text="@Localize["Save and Exit"]" OnClick="OnSave" />
+    </CardToolbar>
+    <CardBody>
+        <div class="d-flex flex-column align-items-center">
+
+            <div class="mt-6 pl-lg-8 pr-16 pr-lg-24 w-100 max-w-800px">
+                <DxTypeahead @ref="Typeahead" TItem="TermDesc" TValue="TermDesc" Value="SelectedTerm" SearchMethod="GetTermsAsync" ValueChanged="OnAddTerm" OnSearchText="OnSearchText" ValueExpression="@(() => SelectedTerm)" placeholder="@Localize["Search symptoms (i.e: seizure, ataxia, ...)"]">
+                    <SelectedTemplate Context="term">
+                        @term.Name
+                    </SelectedTemplate>
+                    <ResultTemplate Context="term">
+                        <div style="border-bottom: solid 0px #ccc">
+                            <h6 class="text-truncate-1 font-weight-bolder m-0">@term.Name</h6>
+                            <div class="text-truncate-1 text-sm-left">@term.Desc</div>
+                        </div>
+                    </ResultTemplate>
+                    <FooterTemplate>
+                        @if (FoundTermsCount > 10)
+                        {
+                            <hr class="mt-0 mb-2" />
+                            <div style="border-bottom: solid 0px #ccc">
+                                <div class="text-danger font-weight-bolder" style="padding-left: 0px; padding-bottom: 4px; font-style: italic">More than 10 results found...</div>
+                            </div>
+                        }
+                    </FooterTemplate>
+                </DxTypeahead>
+            </div>
+
+        </div>
+
+        <div class="pt-10">
+            @if (Items.Count > 0)
+            {
+                <div class="row">
+                    <div class="col-md-12 mb-4" style="display: inline-flex;">
+                        <label class="checkbox">
+                            <input type="checkbox" @bind="SelectAll" @onclick="OnSelectDeselectAll">
+                            <span></span>
+                        </label>
+                        <span class="ml-1">@Localize["Select all"]</span>
+                    </div>
+                </div>
+            }
+            <DataTable IsEmpty="IsEmpty">
+                <DataTableEmpty>
+                    <p>@Localize["No symptoms found"]</p>
+                </DataTableEmpty>
+                <DataTableHeader>
+                    <THR>
+                        <th></th>
+                        @*<th>Id</th>*@
+                        <th>@Localize["Name / Desc"]</th>
+                        <th><div class="d-none d-sm-block">@Localize["Source"]</div></th>
+                        <th><div class="d-none d-sm-block text-center" style="width: 100px">@Localize["Added By"]</div></th>
+                        <th><div class="d-none d-md-block" style="width: 160px">@Localize["Updated"]</div></th>
+                    </THR>
+                </DataTableHeader>
+                <DataTableBody>
+                    <Repeater Items="Items" Context="item">
+                        <tr>
+                            <td>
+                                <div @key="item">
+                                    <label class="checkbox">
+                                        <input type="checkbox" @bind="@item.IsSelected" @onclick="ChangeSelectAll" />
+                                        <span></span>
+                                    </label>
+                                </div>
+                            </td>
+                            @*<TDText Text="@item.Id.ToUpper()" CssText="font-weight-bolder" OnClick="() => OnSymptomClick(item)" />*@
+                            <TDTextLabel Text="@item.Name" Label="@GetSymptomDesc(item)" OnClick="() => OnSymptomClick(item)" />
+                            <TDText Text="@item.GetSourcesDesc()" />
+                            <TDText Text="@Localize["Me"]" />
+                            <TDTextLabel Text="@Localize.AsElapsedTime(item.LastUpdate)" Label="@Localize.ToShortDateString(item.LastUpdate)" />
+                        </tr>
+                    </Repeater>
+                </DataTableBody>
+            </DataTable>
+        </div>
+    </CardBody>
+</Card>
+
+<HPONavigatorDialog @ref="HPONavigatorDialog" OnAccept="OnHPOAccept" />
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Processing text, please wait..."]" />
+
+<DialogConfirm @ref="DialogConfirm" Title="@Localize["Save changes?"]" OnAccept="OnConfirmSaveChanges" OnCancel="OnCancelSaveChanges">
+    <h5>@Localize["You made some changes to the list of symptoms. Do you want to save changes?"]</h5>
+    <p></p>
+</DialogConfirm>
+
+@code
+{
+    private DxTypeahead<TermDesc, TermDesc> Typeahead;
+    private DialogBusy DialogBusy;
+    private DialogConfirm DialogConfirm;
+
+    private HPONavigatorDialog HPONavigatorDialog;
+
+    private List<SymptomDesc> AllItems = null;
+
+    private IList<SymptomDesc> Items = null;
+
+    private string TotalCount => Localize["Total {0} symptoms selected", Items?.Where(r => r.IsSelected).Count()];
+
+    private bool IsLoading => AllItems == null;
+
+    private bool IsEmpty => AllItems?.Count == 0;
+
+    private IList<SymptomDesc> CaseSymptoms = null;
+
+    private int FoundTermsCount = 0;
+
+    private TermDesc SelectedTerm = null;
+    private bool SelectAll = true;
+
+    private bool IsDirty = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CaseSymptoms = await dx29.GetSymptomsDescAsync(CaseId);
+        AllItems = CaseSymptoms.ToList();
+        Items = AllItems?
+            .OrderByDescending(r => r.Name)
+            .OrderByDescending(r => r.LastUpdate)
+            .OrderByDescending(r => r.SelectionOrder)
+            .ToList();
+        foreach (var item in Items)
+        {
+            if (item.IsSelected == false)
+            {
+                SelectAll = false;
+            }
+        }
+    }
+
+    private async Task OnSearchText(string text)
+    {
+        await DialogBusy.OpenAsync();
+
+        var terms = await dx29.DeepSearchSymptomsAsync(text);
+        foreach (var term in terms)
+        {
+            OnAddTerm(term);
+        }
+
+        await DialogBusy.CloseAsync();
+        await Typeahead.FocusAsync();
+    }
+
+    private async Task<IEnumerable<TermDesc>> GetTermsAsync(string query)
+    {
+        return await dx29.SearchSymptomsAsync(query);
+    }
+
+    public void OnAddTerm(TermDesc term)
+    {
+        if (term != null)
+        {
+            var model = GetItem(term.Id);
+            if (model != null)
+            {
+                RemoveItem(term.Id);
+            }
+            else
+            {
+                model = new SymptomDesc()
+                {
+                    Id = term.Id,
+                    Name = term.Name,
+                    Desc = term.Desc
+                };
+            }
+            model.IsSelected = true;
+            model.LastUpdate = DateTimeOffset.UtcNow;
+            //model.Sources.Add(new SymptomSource("Manual", "Manual", ""));
+            AllItems.Insert(0, model);
+            Items.Insert(0, model);
+            IsDirty = true;
+        }
+    }
+
+    private void OnSelectDeselectAll()
+    {
+        foreach (var item in Items)
+        {
+            item.IsSelected = !SelectAll;
+        }
+        IsDirty = true;
+        StateHasChanged();
+    }
+
+    private void ChangeSelectAll()
+    {
+        SelectAll = false;
+        IsDirty = true;
+        StateHasChanged();
+    }
+
+    public SymptomDesc GetItem(string id)
+    {
+        return AllItems.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    }
+
+    public void RemoveItem(string id)
+    {
+        RemoveItem(AllItems, id);
+        RemoveItem(Items, id);
+        IsDirty = true;
+    }
+    public void RemoveItem(IList<SymptomDesc> items, string id)
+    {
+        var term = items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        if (term != null)
+        {
+            items.Remove(term);
+        }
+    }
+
+    private async Task OnSave()
+    {
+        await dx29.UpsertSymptomsAsync(CaseId, Items);
+        await NotifyChangesAsync();
+        IsDirty = false;
+
+        Navigation.TryGoBack(BackHRef);
+    }
+
+    private async Task OnSymptomClick(SymptomDesc model)
+    {
+        var selectedItems = AllItems.Where(r => r.IsSelected).Select(r => r.Id.ToUpper()).ToList();
+
+        var terms = await dx29.GetHpoTermsAsync(model.Id);
+        if (terms != null)
+        {
+            var term = terms.Values?.FirstOrDefault()?.FirstOrDefault();
+            HPONavigatorDialog.HPONavigator.Initialize(term, selectedItems);
+            await HPONavigatorDialog.OpenAsync();
+        }
+    }
+
+    private void OnHPOAccept()
+    {
+        foreach (var term in HPONavigatorDialog.HPONavigator.AddedItems.Values)
+        {
+            var model = TryGetSymptom(term.Id);
+            if (model != null)
+            {
+                model.IsSelected = true;
+            }
+            else
+            {
+                model = new SymptomDesc()
+                {
+                    Id = term.Id,
+                    Name = term.Name,
+                    Desc = term.Desc
+                };
+                model.IsSelected = true;
+                model.LastUpdate = DateTimeOffset.UtcNow;
+                //model.Sources.Add("Manual");
+                AllItems.Insert(0, model);
+                Items.Insert(0, model);
+            }
+            IsDirty = true;
+        }
+        foreach (var item in HPONavigatorDialog.HPONavigator.RemovedItems.Values)
+        {
+            DeselectItem(AllItems, item.Id);
+            DeselectItem(Items, item.Id);
+            IsDirty = true;
+        }
+    }
+
+    public void DeselectItem(IList<SymptomDesc> items, string id)
+    {
+        var term = items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        if (term != null)
+        {
+            term.IsSelected = false;
+            IsDirty = true;
+        }
+    }
+
+    private SymptomDesc TryGetSymptom(string id)
+    {
+        return AllItems.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    }
+
+    private async Task NotifyChangesAsync()
+    {
+        var patient = await dx29.GetPatientAsync(CaseId);
+        MessageServices.Send(SymptomsHub.Instance, "SymptomsUpdate", patient);
+    }
+
+    private string GetSymptomDesc(SymptomDesc item)
+    {
+        if (String.IsNullOrEmpty(item.Desc))
+        {
+            return Localize["(No description)"];
+        }
+        return item.Desc;
+    }
+
+    private async Task<bool> OnConfirmBackNavigationAsync()
+    {
+        if (IsDirty)
+        {
+            DialogConfirm.Open();
+            return await Task.FromResult(false);
+        }
+        return await Task.FromResult(true);
+    }
+
+    private async Task OnConfirmSaveChanges()
+    {
+        await OnSave();
+    }
+
+    private void OnCancelSaveChanges()
+    {
+        Navigation.TryGoBack(BackHRef);
+    }
+
+    private string BackHRef => $"/Dashboard/{CaseId}";
+}

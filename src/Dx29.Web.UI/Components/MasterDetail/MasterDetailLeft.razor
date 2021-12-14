@@ -1,0 +1,59 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@typeparam TItem
+
+<div class="row">
+    <div class="col">
+        <div class="pr-4">
+            @Header
+            <div class="hide-scroll" style="min-height: 380px; overflow-y: auto">
+                <ul class="navi navi-link-rounded navi-accent navi-hover navi-active nav flex-column mb-8 mb-lg-0" role="tablist">
+                    @if (Items != null)
+                    {
+                        string active = "active";
+                        @foreach (var item in Items)
+                        {
+                            <li class="navi-item mb-2 d-flex">
+                                @CheckboxTemplate(item)
+                                <a class="navi-link ml-3 flex-grow-1 @active" data-toggle="tab" href="#" @onclick="(e) => ItemClickHandler(item)" @onclick:preventDefault="true">
+                                    @ItemTemplate(item)
+                                </a>
+                            </li>
+                            active = "";
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public RenderFragment Header { get; set; }
+
+    [Parameter]
+    public RenderFragment ContentHeader { get; set; }
+
+    [Parameter]
+    public IList<TItem> Items { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> CheckboxTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> ItemTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment Content { get; set; }
+
+    [Parameter]
+    public EventCallback<TItem> OnItemClick { get; set; }
+
+   
+    private async Task ItemClickHandler(TItem item)
+    {
+        await OnItemClick.InvokeAsync(item);
+    }
+}

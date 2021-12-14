@@ -1,0 +1,232 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inherits ComponentEx
+@inject LocalizationService Localize
+@inject IMessageService MessageServices
+@inject Dx29Client dx29
+
+@if (CaseSummary != null)
+{
+<div class="row" style="box-shadow: 0 20px 20px -20px #e4e6ef;opacity:0.8;">
+    <div class="col-xl-12"><hr /></div>
+    <div class="col-xl-10 mb-1">
+        <h6 class="font-weight-bolder">@Localize["Disease suggestions"]</h6>
+    </div>
+    @if (!_loading && !CaseSummary.IsDataAnalysisBusy() && !CaseSummary.IsBusy() && !CaseSummary.IsDataAnalysisEmpty())
+    {
+        <div class="col-xl-2 text-center mb-1">
+            <ButtonIcon Text="@Localize["New Analysis"]" OnClick="OnExecuteAnalysis">
+                <Icon><i class="icon-md fas fa-play"></i></Icon>
+            </ButtonIcon>
+        </div>
+    }
+    @if (!_loading)
+    {
+        //Dataanalysis executing
+        @if (CaseSummary.IsDataAnalysisBusy())
+        {
+            <div class="col-xl-12 pt-4">
+                <div class="alert alert-custom alert-outline-primary fade show" role="alert">
+                    <Spinner CssClass="spinner-ms" />
+                    <div class="alert-text ml-12">@Localize["Analysing data to find matching diseases, please wait..."]</div>
+                </div>
+            </div>
+        }
+        // Processing files
+        else if (CaseSummary.IsBusy())
+        {
+            <div class="col-xl-12 pt-4">
+                <div class="alert alert-custom alert-outline-primary fade show" role="alert">
+                    <Spinner CssClass="spinner-ms" />
+                    <div class="alert-text ml-12">@Localize["We are processing your documents. Please wait..."]</div>
+                </div>
+            </div>
+        }
+        // Dataanalysis results
+        else if (!CaseSummary.IsDataAnalysisEmpty())
+        {
+            <div class="col-xl-12 text-sm-left">@Localize["These diseases are similar to your profile. There suggestions are automatic and your disease may not be within the them. In doubt, consult with an especialist. "]</div>
+            <div class=" col-xl-12 my-4">
+                <CardsNav Items="@ItemsNames" ItemSelected="(name) => OnValueChangedAsync(name)"></CardsNav>
+            </div>
+
+        }
+        // No data analysis results
+        else
+        {
+            // No Dataanalysis results: No patient Data
+            @if (!PatientHasMedicalData)
+            {
+                <div class="col-xl-12 pt-2">
+                    <span>@Localize["You must enter some patient data (symptoms, reports,...) in order to provide disease suggestions."]</span>
+                </div>
+            }
+            // No Dataanalysis results: Yes patient Data
+            else
+            {
+                <div class="col-xl-12 pt-4"><span>@Localize["We don't have any analysis results with your case information to suggest disease matches yet. Do you want to execute one now to see this list?"]</span></div>
+                <div class="col-xl-12 py-6 text-center">
+                    <ButtonIcon CssClass="" Text="@Localize["Execute Analysis"]" OnClick="OnExecuteAnalysis">
+                        <Icon><i class="icon-md fas fa-play"></i></Icon>
+                    </ButtonIcon>
+                </div>
+            }
+        }
+    }
+
+    else
+    {
+        <div class="col-xl-12 text-sm-left">@Localize["Loading suggestions... "]</div>
+        <div class="col-xl-12 my-8">
+            <div class="d-flex flex-column align-items-center w-100">
+                <Spinner CssClass="spinner-xl" />
+            </div>
+        </div>
+    }
+    <div class="col-xl-12 text-sm-left text-black-50 mb-4"></div>
+</div>
+}
+
+<DialogOk @ref="Dialog" Title="@Localize["Not enought symptoms"]">
+    <h6>@Localize["There are not enough symptoms to execute a data analysis."]</h6>
+    <p>@Localize["Please, add at least 1 symptom and try again."]</p>
+    <p></p>
+</DialogOk>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public EventCallback<string> DiseaseChanged { get; set; }
+
+    [Parameter]
+    public MedicalCaseSummary CaseSummary { get; set; } = null;
+
+    private bool _loading = false;
+
+    private string Id { get; set; }
+
+    private IList<DiffDisease> Items = null;
+    private IList<TermDesc> ItemsNames = null;
+    private IList<DiffDisease> AllItems = null;
+
+    private DialogOk Dialog;
+
+    private bool PatientHasMedicalData = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadItemsAsync();
+
+    }
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await RefreshAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshAsync()
+    {
+        CaseSummary = await dx29.GetCaseSummaryAsync(CaseId);
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        _loading = true;
+        await PatientHasMedicalDataAsync();
+        Id = await dx29.GetLastAnalysisIdAsync(CaseId);
+        if (Id != null)
+        {
+            var items = await dx29.GetAnalysisAsync(CaseId, Id);
+            if (items.Count > 0)
+            {
+                Items = items
+                .OrderByDescending(r => r.Symptoms.Where(r => r.HasPatient && r.HasDisease).Count())
+                .OrderByDescending(r => r.ScoreDx29)
+                .OrderByDescending(r => r.HasGenes()).ToList();
+
+                ItemsNames = new List<TermDesc>();
+                foreach (var item in Items)
+                {
+                    var itemName = new TermDesc
+                    {
+                        Name = item.Name,
+                        IsSelected = false
+                    };
+                    ItemsNames.Add(itemName);
+                }
+            }
+        }
+        _loading = false;
+    }
+
+    private async Task PatientHasMedicalDataAsync()
+    {
+        IList<Symptom> patientSymptoms = await dx29.GetSymptomsAsync(CaseId);
+        IList<ReportModel> patientGeneInfo = await dx29.GetGeneReportsAsync(CaseId);
+        if ((patientSymptoms.Count > 0) || (patientGeneInfo.Count > 0))
+        {
+            PatientHasMedicalData = true;
+        }
+    }
+
+    public void ResetNav()
+    {
+        if (Items != null)
+        {
+            ItemsNames = new List<TermDesc>();
+            foreach (var item in Items)
+            {
+                var itemName = new TermDesc
+                {
+                    Name = item.Name,
+                    IsSelected = false
+                };
+                ItemsNames.Add(itemName);
+            }
+        }
+    }
+
+    public async Task OnValueChangedAsync(string name)
+    {
+        if (ItemsNames.Select(r => r.Name).ToList().Contains(name))
+        {
+            (ItemsNames.Where(r => r.Name == name).FirstOrDefault()).IsSelected = true;
+        }
+        SetItemsNamesSelectedFalse(name);
+
+        string id = Items.Where(r => r.Name == name).FirstOrDefault().Id;
+        if (id != null)
+        {
+            await DiseaseChanged.InvokeAsync(id);
+        }
+    }
+
+    private void SetItemsNamesSelectedFalse(string name)
+    {
+        foreach (var item in ItemsNames)
+        {
+            if ((item.Name != name) && (item.IsSelected == true))
+            {
+                item.IsSelected = false;
+            }
+        }
+    }
+
+    private void OnExecuteAnalysis()
+    {
+        if (CaseSummary.GetEligibleSymptoms().Count > 0)
+        {
+            NavigateTo($"/DataAnalysis2/New/{CaseId}");
+        }
+        else
+        {
+            Dialog.Open();
+        }
+    }
+
+}

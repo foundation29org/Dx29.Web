@@ -1,0 +1,234 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+<h3>@Localize["Symptoms"]</h3>
+<h4 class="mb-6 text-black-50">@Localize["Add patient symptoms"]</h4>
+
+@if (diagnosedSelected != null)
+{
+    if ((diagnosedSelected != null) && (Items.Count > 0) && (_loadingItems == false))
+    {
+        <div class="font-size-h6 font-italic">@Localize["Below listed are the symptoms associated with your disease. Select your symptoms from the list and add any additional ones using the search box."]</div>
+    }
+    else if ((diagnosedSelected != null) && (Items.Count == 0) && (_loadingItems == false))
+    {
+        <div class="font-size-h6 font-italic">@Localize["Sorry, at this time we do not have symptom data of your disease. Please, add your symptoms using the search box."]</div>
+    }
+
+}
+else
+{
+    <div class="font-size-h6 font-italic">@Localize["Type to search and select symptoms. You can add or remove symptoms at anytime in the dashboard."]</div>
+}
+<div class="d-flex flex-column align-items-center pt-6">
+    <div class="pl-lg-8 pr-16 pr-lg-24 w-100">
+        <DxTypeahead @ref="Typeahead" TItem="TermDesc" TValue="TermDesc" Value="SelectedTerm" SearchMethod="GetTermsAsync" ValueChanged="OnValueChanged" OnSearchText="OnSearchText" ValueExpression="@(() => SelectedTerm)" placeholder="@Localize["Search symptoms (i.e: seizure, ataxia, ...)"]">
+            <SelectedTemplate Context="term">
+                @term.Name
+            </SelectedTemplate>
+            <ResultTemplate Context="term">
+                <div style="border-bottom: solid 0px #ccc">
+                    <h6 class="text-truncate-1 font-weight-bolder m-0">@term.Name</h6>
+                    <div class="text-truncate-1 text-sm-left">@term.Desc</div>
+                </div>
+            </ResultTemplate>
+            <FooterTemplate>
+                @if (FoundTermsCount > 10)
+                {
+                    <hr class="mt-0 mb-2" />
+                    <div style="border-bottom: solid 0px #ccc">
+                        <div class="text-danger font-weight-bolder" style="padding-left: 0px; padding-bottom: 4px; font-style: italic">More than 10 results found...</div>
+                    </div>
+                }
+            </FooterTemplate>
+        </DxTypeahead>
+    </div>
+</div>
+@if ((diagnosedSelected == null) && (Items.Count > 0) && (_loadingItems == false))
+{
+    <div class="pt-6">
+        <div class="overflow-auto">
+            <Table CssClass="compact">
+                <TableBody>
+                    <Repeater Items="Items" Context="item">
+                        <tr>
+                            <td>
+                                <div>
+                                    <h5 class="text-truncate-1 font-weight-bolder m-0">@item.Name</h5>
+                                    <div class="text-truncate-1 text-sm-left">@item.Desc</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn btn-icon btn-clean btn-sm" @onclick="() => DeleteItem(item.Id)">
+                                    <i class="flaticon2-delete icon-sm text-danger opacity-80"></i>
+                                </div>
+                            </td>
+                        </tr>
+                    </Repeater>
+                </TableBody>
+            </Table>
+        </div>
+    </div>
+}
+else if ((diagnosedSelected != null) && (Items.Count > 0) && (_loadingItems == false))
+{
+    <div class="pt-6">
+        <div class="overflow-auto" style="max-height:300px;">
+            <Table CssClass="compact">
+                <TableBody>
+                    <Repeater Items="Items" Context="item">
+                        <tr>
+                            <td>
+                                <div>
+                                    <label class="checkbox">
+                                        <input type="checkbox" @bind="@item.IsSelected" @onclick="(c) => OnItemChanged(item)" />
+                                        <span></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-block">
+                                    <div class="text-truncate-1 font-weight-bolder">@item.Name</div>
+                                    <div class="text-truncate-1 opa-75">@item.Desc</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </Repeater>
+                </TableBody>
+            </Table>
+        </div>
+    </div>
+}
+
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Processing text, please wait..."]" />
+
+@code
+{
+    private DxTypeahead<TermDesc, TermDesc> Typeahead;
+    private DialogBusy DialogBusy;
+
+    [Parameter]
+    public IList<TermDesc> Items { get; set; }
+
+    [Parameter]
+    public IList<string> diseasesIds { get; set; } = null;
+    private string diagnosedSelected => ((diseasesIds?.Count > 0) && (diseasesIds?.Select(z => z).FirstOrDefault().Length > 0)) ? diseasesIds.Select(z => z).FirstOrDefault() : null;
+
+    private bool _loadingItems = true;
+    private int FoundTermsCount = 0;
+
+    private TermDesc SelectedTerm = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadSymptomsOfDisease();
+        await base.OnParametersSetAsync();
+    }
+
+    public async Task LoadSymptomsOfDisease()
+    {
+        _loadingItems = true;
+        if (diagnosedSelected != null)
+        {
+            var terms = await dx29.GetSymptomsOfDiseaseAsync(diagnosedSelected);
+            if (terms != null)
+            {
+                if (terms.ContainsKey(diagnosedSelected))
+                {
+                    foreach (var term in terms[diagnosedSelected])
+                    {
+                        if (Items.Any(x => x.Id == term.Id) == false)
+                        {
+                            var newSymptom = new TermDesc
+                            {
+                                Name = term.Name,
+                                Id = term.Id,
+                                Desc = term.Desc,
+                                Categories = term.Categories,
+                                IsSelected = false
+                            };
+                            Items.Add(newSymptom);
+                        }
+                    }
+                }
+            }
+
+
+        }
+        else
+        {
+            List<TermDesc> ItemsCopy = Items.Where(r => r.IsSelected).ToList();
+            if (ItemsCopy.Count == 0)
+            {
+                foreach (var item in Items)
+                {
+                    item.IsSelected = true;
+                }
+            }
+            else
+            {
+                Items = ItemsCopy;
+            }
+        }
+        _loadingItems = false;
+    }
+
+
+    private async Task<IEnumerable<TermDesc>> GetTermsAsync(string query)
+    {
+        return await dx29.SearchSymptomsAsync(query);
+    }
+
+    public void OnValueChanged(TermDesc term)
+    {
+        if (term != null)
+        {
+            DeleteItem(term.Id);
+            term.IsSelected = true;
+            Items.Insert(0, term);
+        }
+    }
+
+    private async Task OnSearchText(string text)
+    {
+        await DialogBusy.OpenAsync();
+
+        var terms = await dx29.DeepSearchSymptomsAsync(text);
+        foreach (var term in terms)
+        {
+            DeleteItem(term.Id);
+            term.IsSelected = true;
+            Items.Insert(0, term);
+        }
+
+        await DialogBusy.CloseAsync();
+        await Typeahead.FocusAsync();
+    }
+
+    public void DeleteItem(string id)
+    {
+        var term = Items.Where(r => r.Id == id).FirstOrDefault();
+        if (term != null)
+        {
+            Items.Remove(term);
+        }
+    }
+
+    private void OnItemChanged(TermDesc term)
+    {
+        term.IsSelected = !term.IsSelected;
+    }
+
+    private string GetSymptomDesc(TermDesc item)
+    {
+        if (String.IsNullOrEmpty(item.Desc))
+        {
+            return Localize["(No description)"];
+        }
+        return item.Desc;
+    }
+}

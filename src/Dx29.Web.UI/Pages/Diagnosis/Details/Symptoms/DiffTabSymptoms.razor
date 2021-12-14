@@ -1,0 +1,73 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+<div class="row mt-2">
+    <div class="col">
+        <div class="row">
+            <div class="col-md-9">
+                <label class="font-weight-bolder text-uppercase">@Localize["Symptom by symptom comparison"]</label>
+                <p>@Localize["Table showing patient symptoms and the symptoms present in the reference case."]</p>
+            </div>
+            <div class="col-md-3">
+                <div style="float: right">
+                    <Dropdown2 @ref="Dropdown" Caption="@GroupBy">
+                        <a class="dropdown-item" href="#" @onclick="() => OnGroupChanged(0)" @onclick:preventDefault>@Localize["Grouped by Frequency"]</a>
+                        <a class="dropdown-item" href="#" @onclick="() => OnGroupChanged(1)" @onclick:preventDefault>@Localize["Grouped by Category"]</a>
+                    </Dropdown2>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            @if (Classification == "Frequency")
+            {
+                @foreach (var groupOfSymptoms in SortSymptoms(Item.Symptoms).GroupBy(r => r.Frequency.Name))
+                {
+                    <SymptomsTable GroupName="@groupOfSymptoms.Key" GroupType="@Classification" InfoSymptoms="SortSymptoms(groupOfSymptoms.ToList())" CaseId="@CaseId"></SymptomsTable>
+                }
+            }
+            else
+            {
+                @foreach (var groupOfSymptoms in SortSymptoms(Item.Symptoms).GroupBy(r => r.FirstCategory?.Name))
+                {
+                    <SymptomsTable GroupName="@groupOfSymptoms.Key" GroupType="@Classification" InfoSymptoms="SortSymptoms(groupOfSymptoms.ToList())" CaseId="@CaseId"></SymptomsTable>
+                }
+            }
+
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public DiffDisease Item { get; set; }
+
+    private Dropdown2 Dropdown = null;
+
+    private string GroupBy = null;
+
+    private string Classification = "Frequency";
+
+    protected override void OnInitialized()
+    {
+        GroupBy = Localize["Grouped by Frequency"];
+        base.OnInitialized();
+    }
+
+    private void OnGroupChanged(int group)
+    {
+        GroupBy = group == 0 ? Localize["Grouped by Frequency"] : Localize["Grouped by Category"];
+        Classification = group == 0 ? "Frequency" : "Category";
+        Dropdown.Close();
+    }
+
+    private List<DiffSymptom> SortSymptoms(List<DiffSymptom> items)
+    {
+        return items.OrderByDescending(r => r.HasDisease).OrderByDescending(r => r.HasDisease == r.HasPatient).OrderBy(r => r.Frequency.Id).ToList();
+    }
+}

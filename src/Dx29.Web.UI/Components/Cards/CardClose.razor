@@ -1,0 +1,13 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="position-absolute" style="top: 8px; right: 8px">
+    <div class="btn btn-icon btn-clean btn-lg" @onclick="OnClose">
+        <i class="flaticon2-cross"></i>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+}

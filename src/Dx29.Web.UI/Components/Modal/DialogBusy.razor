@@ -1,0 +1,22 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<Modal @ref="Dialog" IsCloseVisible="false" IsCancelEnabled="false">
+    <ModalBody>
+        <div class="spinner spinner-primary spinner-center text-center"></div>
+        <div class="text-center pt-6">@Message</div>
+    </ModalBody>
+</Modal>
+
+@code
+{
+    private Modal Dialog;
+
+    [Parameter]
+    public string Message { get; set; }
+
+    public void Open() => Dialog.Open();
+    public async Task OpenAsync() => await Dialog.OpenAsync();
+
+    public void Close() => Dialog.Close();
+    public async Task CloseAsync() => await Dialog.CloseAsync();
+}

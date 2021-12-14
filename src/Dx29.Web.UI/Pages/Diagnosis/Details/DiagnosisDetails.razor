@@ -1,0 +1,86 @@
+﻿@page "/Diagnosis/Details/{caseId}/{id}/{DiseaseId}"
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+<Card IsLoading="IsLoading">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <i class="icon-2x flaticon2-cardiogram text-success"></i>
+    </CardIcon>
+    <CardHeader>
+        <CardTitle Title="@Localize["Differential diagnosis"]" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardBody>
+        <h3 class="font-weight-bolder">
+            @Item.Name
+        </h3>
+        <h6>@Item.Id</h6>
+        <p class="font-size-h6">@Item.Desc</p>
+
+        @{
+            (var patientSymptoms, var diseaseSymptoms, var matchSymptoms, var patientPercent, var diseasePercent) = Item.SymptomsMatch();
+            (var na, var nb, var nc) = Item.SymptomsVenn();
+        }
+        <div class="progress my-4" style="height: 20px">
+            <div class="progress-bar bg-success" role="progressbar" style="width: @($"{nb}%")" aria-valuenow="@(nb)" aria-valuemin="0" aria-valuemax="100">@matchSymptoms</div>
+            <div class="progress-bar bg-danger opa-75" role="progressbar" style="width: @($"{na}%")" aria-valuenow="@(na)" aria-valuemin="0" aria-valuemax="100">@(patientSymptoms- matchSymptoms)</div>
+            <div class="progress-bar bg-light" role="progressbar" style="width: @($"{nc}%")" aria-valuenow="@(nc)" aria-valuemin="0" aria-valuemax="100"><span class="text-dark">@(diseaseSymptoms - matchSymptoms)</span></div>
+        </div>
+
+        <p>@Localize["{0} out of {1} symptoms match from a total of {2} symptoms in the disease", matchSymptoms, patientSymptoms, diseaseSymptoms]</p>
+
+        <Tab>
+            <TabItems>
+                <TabItem HRef="#dataAnalysis-diffSymptoms" Active="true">
+                    <Caption>Symptoms</Caption>
+                </TabItem>
+                <TabItem HRef="#dataAnalysis-diffGenes">
+                    <Caption>Genes</Caption>
+                </TabItem>
+            </TabItems>
+            <TabItemContents>
+                <TabItemContent Id="dataAnalysis-diffSymptoms" Active="true">
+                    <Separator />
+                    <DiffTabSymptoms Item="Item" CaseId="@CaseId"></DiffTabSymptoms>
+                </TabItemContent>
+                <TabItemContent Id="dataAnalysis-diffGenes">
+                    <Separator />
+                    <DiffTabGenes Item="Item" CaseId="@CaseId" GeneReportId="@GeneReportId"></DiffTabGenes>
+                </TabItemContent>
+            </TabItemContents>
+        </Tab>
+
+    </CardBody>
+</Card>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public string DiseaseId { get; set; }
+
+    private DiffDisease Item = null;
+
+    private string GeneReportId = null;
+
+    private bool IsLoading => Item == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] : Localize["Total {0} symptoms", Item.Symptoms.Count];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Item = await dx29.GetAnalysisAsync(CaseId, Id, DiseaseId);
+        GeneReportId = await dx29.GetGeneReportId(CaseId, Id);
+    }
+
+    private string BackHRef => $"/Diagnosis/{CaseId}";
+}

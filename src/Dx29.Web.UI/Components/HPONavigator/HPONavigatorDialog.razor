@@ -1,0 +1,36 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject Dx29Client dx29
+@inject LocalizationService Localize
+
+<Modal CssClassModal="modal-xl" @ref="Dialog" IsCloseVisible="false">
+    <ModalContent>
+        <HPONavigator @ref="HPONavigator" />
+    </ModalContent>
+    <ModalFooter>
+        <div class="p-6">
+            <ModalAcceptCancel Accept="@Localize["Save Changes"]" Cancel="@Localize["Cancel"]" OnAccept="OnAcceptHandler" />
+        </div>
+    </ModalFooter>
+</Modal>
+
+@code
+{
+    [Parameter]
+    public EventCallback OnAccept { get; set; }
+
+    private Modal Dialog;
+
+    public HPONavigator HPONavigator { get; set; }
+
+    public async Task OpenAsync()
+    {
+        await Dialog.OpenAsync();
+    }
+
+    private async void OnAcceptHandler()
+    {
+        await Dialog.CloseAsync();
+        await OnAccept.InvokeAsync();
+    }
+}

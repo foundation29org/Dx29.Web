@@ -1,0 +1,23 @@
+﻿@using Dx29.Web
+@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+
+@{
+    ViewData["Title"] = @SharedLocalizer["Confirm email"];
+}
+
+<div class="row">
+    <div class="offset-3 col-6">
+        <section>
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+            <p>
+                @SharedLocalizer["Thank you for confirming your email. Now your account is activated and you can login."]
+            </p>
+            <p>
+                @SharedLocalizer["You can close this window."]
+            </p>
+        </section>
+    </div>
+</div>

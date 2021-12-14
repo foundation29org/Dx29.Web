@@ -1,0 +1,166 @@
+﻿@namespace Dx29.Web.UI.Shared
+
+@using System.Security.Claims
+
+@inherits ComponentEx
+
+@inject AppState AppState
+@inject IMessageService MessageServices
+
+@if (User != null)
+{
+    <ul class="menu-nav">
+
+        @if (User.IsInRole("Physician"))
+        {
+            <li class="menu-item">
+                <NavLink href="/Patients" class="menu-link" Match="NavLinkMatch.All" @onclick="OnItemClick">
+                    <i class="menu-icon flaticon-users-1"></i>
+                    <span class="menu-text">@Localize["Patients"]</span>
+                </NavLink>
+            </li>
+        }
+
+        @if (CurrentCase != null)
+        {
+            <li class="menu-section">
+                <h4 class="menu-text">@Localize["Dashboard"]</h4>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"Dashboard/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon flaticon2-layers"></i>
+                    <span class="menu-text">@Localize["Dashboard"]</span>
+                </NavLink>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"Summary/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon fas fa-paperclip"></i>
+                    <span class="menu-text">@Localize["Data Explorer"]</span>
+                </NavLink>
+            </li>
+
+            <li class="menu-section">
+                <h4 class="menu-text">@Localize["Patient Data"]</h4>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"Symptoms/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon fas fa-hand-holding-medical"></i>
+                    <span class="menu-text">@Localize["Symptoms"]</span>
+                </NavLink>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"Diagnosis/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon flaticon2-cardiogram"></i>
+                    <span class="menu-text">@Localize["Diseases"]</span>
+                </NavLink>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"Reports/{CaseId}?ClearNavigation")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon flaticon2-checking"></i>
+                    <span class="menu-text">@Localize["Medical Reports"]</span>
+                </NavLink>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"Genotype/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon fas fa-dna"></i>
+                    <span class="menu-text">@Localize["Genotype"]</span>
+                </NavLink>
+            </li>
+
+            <li class="menu-section">
+                <h4 class="menu-text">@Localize["Advanced"]</h4>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"Sharing/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon fas fa-share-alt"></i>
+                    <span class="menu-text">@Localize["Share Case"]</span>
+                </NavLink>
+            </li>
+            <li class="menu-item">
+                <NavLink href="@($"MultisampleVCF/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon fas fa-dna"></i>
+                    <span class="menu-text">@Localize["Multisample VCFs"]</span>
+                </NavLink>
+            </li>
+        }
+
+        @{
+#if DEBUG
+            bool DEBUG = true;
+#else
+bool DEBUG = false;
+#endif
+        }
+
+        @if (DEBUG || User.IsInRole("Admin"))
+        {
+            <li class="menu-section">
+                <h4 class="menu-text">@Localize["Debug"]</h4>
+            </li>
+
+            @if (CurrentCase != null)
+            {
+                <li class="menu-item">
+                    <NavLink href="@($"Debug/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                        <i class="menu-icon flaticon2-checking"></i>
+                        <span class="menu-text">@Localize["Debug"]</span>
+                    </NavLink>
+                </li>
+                <li class="menu-item">
+                    <NavLink href="@($"DTimeline/{CaseId}")" class="menu-link" @onclick="OnItemClick">
+                        <i class="menu-icon flaticon2-checking"></i>
+                        <span class="menu-text">@Localize["Debug TimeLine"]</span>
+                    </NavLink>
+                </li>
+            }
+            <li class="menu-item">
+                <NavLink href="Logs" class="menu-link" @onclick="OnItemClick">
+                    <i class="menu-icon flaticon2-checking"></i>
+                    <span class="menu-text">@Localize["Logs"]</span>
+                </NavLink>
+            </li>
+        }
+    </ul>
+}
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; }
+
+    [Parameter]
+    public EventCallback OnItemClick { get; set; }
+
+    private ClaimsPrincipal User = null;
+
+    private PatientModel CurrentCase = null;
+
+    private string CaseId => CurrentCase?.Id;
+
+    protected override void OnInitialized()
+    {
+        CurrentCase = AppState.CurrentCase;
+        MessageServices.Subscribe<AppState>(this, OnStateChanged);
+        base.OnInitialized();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        User = (await AuthenticationState).User;
+    }
+
+    private void OnStateChanged(AppState appState, string message, object args)
+    {
+        if (message == "CurrentCaseChanged")
+        {
+            CurrentCase = args as PatientModel;
+            StateHasChanged();
+        }
+    }
+
+    override public void Dispose()
+    {
+        MessageServices.Unsubscribe<AppState>(this);
+        base.Dispose();
+    }
+}

@@ -1,0 +1,189 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IMessageService MessageServices
+
+<SummaryHeader Title="@Localize["Symptoms"]" Subtitle="@TotalCount" IsLoading="IsLoading">
+    <Toolbar>
+        <ButtonSave Text="@Localize["Save changes"]" OnClick="OnSaveChanges" />
+    </Toolbar>
+</SummaryHeader>
+
+@if (!IsLoading)
+{
+    <SymptomSearch OnTermAdded="OnTermAdded" />
+    if (Total > 0)
+    {
+        <div class="mt-6 py-2">@Localize["These are your symptoms. The ones marked with a star are the key symptoms, those that are considered more important or relevant."]</div>
+    }
+    <SymptomFavorites CaseId="@CaseId" Items="Items" ShowContextMenu="true" OnChanged="OnItemsChanged" />
+
+    @if (ReportItems != null)
+    {
+        if (ReportItems.Count > 0)
+        {
+            <Separator H="4" />
+            <h4>@Localize["Suggested symptoms from Medical Reports"]</h4>
+            <p>@Localize["The following list shows the symptoms we found in your documents. Review the symptoms and select those applicable to the patient."]</p>
+            <Separator H="1" />
+            foreach (var report in ReportItems)
+            {
+                if (report.Status.EqualsNoCase("Ready"))
+                {
+                    <div class="d-flex bg-light rounded pt-3 pb-2">
+                        <i class="ml-5 icon-lg flaticon2-crisp-icons"></i>
+                        <span class="ml-5 font-size-h5 font-weight-bolder">@report.Name</span>
+                    </div>
+                    <SymptomList CaseId="@CaseId" Items="GetReportSymptoms(report.Id)" ShowContextMenu="false" OnChanged="OnItemsChanged" />
+                    <Separator H="2" />
+                }
+                else if (report.Status.EqualsNoCase("Error"))
+                {
+                    <div class="d-flex bg-light rounded pt-3 pb-2">
+                        <i class="ml-5 icon-lg flaticon2-warning text-danger"></i>
+                        <div class="ml-5 font-size-h5 font-weight-bolder text-danger">@report.Name</div>
+                    </div>
+                    @*<hr class="my-1" />*@
+                    <p class="text-danger">@Localize["There was an error processing this document."]</p>
+                    <Separator H="2" />
+                }
+                else
+                {
+                    <div class="d-flex bg-light rounded pt-3 pb-2">
+                        <Spinner CssClass="ml-5 spinner-md" Style="width: 16px; height: 24px" />
+                        <div class="ml-8 font-size-h5 font-weight-bolder">@report.Name</div>
+                    </div>
+                    <div class="my-2">@Localize["Processing..."]</div>
+                    <Separator H="2" />
+                }
+            }
+        }
+    }
+}
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Saving changes, please wait..."]" />
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public MedicalCaseSummary CaseSummary { get; set; }
+
+    [Parameter]
+    public IList<ReportModel> ReportItems { get; set; }
+
+    [Parameter]
+    public EventCallback OnUpdate { get; set; }
+
+    public bool IsDirty { get; set; }
+
+    private IList<SymptomDesc> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private int? Total => Items?.Where(r => r.IsSelected).Count();
+    private string TotalCount => Localize["Total {0} symptoms", Total];
+
+    private DialogBusy DialogBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MessageServices.Subscribe<NotificationService>(this, OnNotification);
+        await LoadItemsAsync();
+    }
+
+    private void OnItemsChanged()
+    {
+        StateHasChanged();
+        IsDirty = true;
+    }
+
+    private async void OnNotification(NotificationService svc, string message, object obj)
+    {
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        var symptoms = await dx29.GetSymptomsDescAsync(CaseId);
+        Items = symptoms.Where(r => r.Categories != null).ToList();
+        IsDirty = false;
+    }
+
+    private void OnTermAdded(TermDesc term)
+    {
+        if (term != null)
+        {
+            var model = GetItem(term.Id);
+            if (model != null)
+            {
+                RemoveItem(term.Id);
+            }
+            else
+            {
+                model = new SymptomDesc()
+                {
+                    Id = term.Id,
+                    Name = term.Name,
+                    Desc = term.Desc
+                };
+            }
+            model.IsSelected = true;
+            model.LastUpdate = DateTimeOffset.UtcNow;
+            if (!model.Sources.Any(r => r.Name == "Manual"))
+            {
+                model.Sources.Add(new SymptomSource("Manual", "Manual", ""));
+            }
+            Items.Insert(0, model);
+            IsDirty = true;
+        }
+    }
+
+    public SymptomDesc GetItem(string id)
+    {
+        return Items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    }
+
+    public void RemoveItem(string id)
+    {
+        var term = Items.Where(r => String.Equals(r.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        if (term != null)
+        {
+            Items.Remove(term);
+            IsDirty = true;
+        }
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await OnSaveChanges();
+    }
+
+    private async Task OnSaveChanges()
+    {
+        await DialogBusy.OpenAsync();
+        await dx29.UpsertSymptomsAsync(CaseId, Items);
+        await NotifyChangesAsync();
+        await DialogBusy.CloseAsync();
+
+        await LoadItemsAsync();
+        await OnUpdate.InvokeAsync();
+    }
+
+    private async Task NotifyChangesAsync()
+    {
+        var patient = await dx29.GetPatientAsync(CaseId);
+        MessageServices.Send(SymptomsHub.Instance, "SymptomsUpdate", patient);
+    }
+
+    public override void Dispose()
+    {
+        MessageServices.Unsubscribe<NotificationService>(this);
+        base.Dispose();
+    }
+}

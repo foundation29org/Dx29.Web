@@ -1,0 +1,139 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+
+<Card IsLoading="IsLoading">
+    <CardHeader>
+        <CardTitle Title="@Localize["Top Diseases"]" />
+    </CardHeader>
+    <CardBody>
+        <Table CssClass="compact">
+            <TableHeader>
+                <tr class="text-left text-uppercase">
+                    <th></th>
+                    <th>@Localize["Disease"]</th>
+                    <th>@Localize["Gene"]</th>
+                    <th>@Localize["Score"]</th>
+                    <th>@Localize["Symptoms Match"]</th>
+                    <th></th>
+                </tr>
+                <tr class="h-10px"></tr>
+            </TableHeader>
+            <TableBody>
+                <Repeater Items="Items" TItem="DiffDisease" Context="item">
+                    @{
+                        (var patientSymptoms, var diseaseSymptoms, var matchSymptoms, var patientPercent, var diseasePercent) = item.SymptomsMatch();
+                        (var na, var nb, var nc) = item.SymptomsVenn();
+                    }
+                    <tr>
+                        <TD CssClass="px-4">
+                            <i class="icon-xl flaticon2-cardiogram text-success"></i>
+                        </TD>
+                        <TDTextLabel Text="@item.Name" CssText="font-size-h5" Label="@GetDiseaseDesc(item)" Truncate="2" HRef="@GetDiseaseUrl(item)" />
+                        <TD>
+                            @{
+                                (var geneIds, var geneLabels) = item.GetGenes();
+                            }
+                            <TDTextLabel Text="@geneLabels" Label="@geneIds" />
+                        </TD>
+                        <TD>
+                            <div class="text-center">@item.ScoreDx29</div>
+                        </TD>
+                        <TD CssClass="px-4" Style="width: 25%">
+                            <div class="progress" style="height: 12px">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: @($"{nb}%")" aria-valuenow="@(nb)" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar bg-danger opa-75" role="progressbar" style="width: @($"{na}%")" aria-valuenow="@(na)" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="text-truncate-1 font-size-sm opa-75">@Localize["{0} / {1} match from a total of {2}", matchSymptoms, patientSymptoms, diseaseSymptoms]</div>
+                        </TD>
+                        <TDButtonIcon CssClass="btn-light-primary" OnClick="() => OnShowDetails(item)">
+                            <i class="flaticon2-right-arrow icon-sm"></i>
+                        </TDButtonIcon>
+                    </tr>
+                </Repeater>
+            </TableBody>
+        </Table>
+        <div class="row" style="align-items: flex-end;">
+            <div class="col-md-6">
+                @Localize["Page {0} of {1}", pageNumber, TotalPages]
+            </div>
+            <div class="col-md-6">
+                @if (pageNumber < TotalItems.Count() / pageSize)
+                {
+                    <button class="btn btn-primary fa-pull-right m-1" @onclick="(e => HandleNextPage())"> @Localize["Next"] </button>
+                }
+
+                @if (pageNumber > 1)
+                {
+                    <button class="btn btn-primary fa-pull-right m-1" @onclick="(e => HandlePreviousPage())"> @Localize["Previous"] </button>
+                }
+            </div>
+        </div>
+    </CardBody>
+</Card>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private IList<DiffDisease> Items = null;
+    private IOrderedEnumerable<DiffDisease> TotalItems = null;
+
+    private bool IsLoading => Items == null;
+
+    private string TotalCount => IsLoading ? Localize["Loading..."] :
+        Items.Count == 0 ? Localize["No results to show"] : Localize["Showing top {0} diseases", Items.Count];
+
+    private int pageSize = 10;
+    private int pageNumber = 1;
+    private int TotalPages = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var items = await dx29.GetAnalysisAsync(CaseId, Id);
+
+        TotalItems = items
+        .OrderByDescending(r => r.Symptoms.Where(r => r.HasPatient && r.HasDisease).Count())
+        .OrderByDescending(r => r.ScoreDx29)
+        .OrderByDescending(r => r.HasGenes());
+
+        TotalPages = TotalItems.Count() / pageSize;
+
+        Items = TotalItems.Take(10).ToArray();
+    }
+
+    private void OnShowDetails(DiffDisease item)
+    {
+        NavigationManager.NavigateTo(GetDiseaseUrl(item));
+    }
+
+    private string GetDiseaseUrl(DiffDisease item) => $"/Diagnosis/Details/{CaseId}/{Id}/{item.Id}";
+
+    private string GetDiseaseDesc(DiffDisease item)
+    {
+        if (String.IsNullOrEmpty(item.Desc))
+        {
+            return Localize["(No description)"];
+        }
+        return item.Desc;
+    }
+
+    void HandlePreviousPage()
+    {
+        pageNumber = pageNumber - 1;
+        Items = TotalItems.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArray();
+    }
+
+    void HandleNextPage()
+    {
+        pageNumber = pageNumber + 1;
+        Items = TotalItems.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArray();
+
+    }
+}

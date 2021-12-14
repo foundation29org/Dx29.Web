@@ -1,0 +1,104 @@
+﻿@page "/DTimeline/{caseId}"
+
+@inject Dx29Client dx29
+
+<Card>
+    <CardHeader>
+        <CardTitle Title="Time Line" Subtitle="Sample" />
+    </CardHeader>
+    <CardToolbar>
+        <button class="btn btn-lg btn-light-primary w-220px" @onclick="OnClick">
+            <i class="icon-md flaticon2-add-1"></i>
+            <span>Generate Timeline</span>
+        </button>
+    </CardToolbar>
+    <CardBody>
+
+        <div class="row">
+            <div class="col-lg-6 col-xxl-6">
+                <pre>
+                    @leftJson
+                </pre>
+            </div>
+            <div class="col-lg-6 col-xxl-6">
+                <pre>
+                    @rightJson
+                </pre>
+            </div>
+        </div>
+    </CardBody>
+</Card>
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    string leftJson;
+    string rightJson;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var timeline = await dx29.GetTimelineAsync(CaseId);
+        LoadLeft(timeline);
+        LoadRight(timeline);
+    }
+
+    private void LoadLeft(SymptomTimeline timeline)
+    {
+        var simpleTL = timeline.Items.Select(r => new
+        {
+            Id = r.Id,
+            Name = r.Name,
+            StartDate = r.StartDate,
+            EndDate = r.EndDate
+        });
+        leftJson = simpleTL.Serialize();
+    }
+
+    private void LoadRight(SymptomTimeline timeline)
+    {
+        var group1 = timeline.Items.Where(r => r.StartDate != null)
+            .GroupBy(r => DateTimeOffset.Parse(r.StartDate.Value.ToString("yyyy/MM/01")))
+            .OrderBy(r => r.Key)
+            .Select(r => new
+            {
+                Header = r.Key.ToString("MMMM yyyy"),
+                Items = r.OrderBy(r => r.StartDate)
+            });
+        var items = timeline.Items.Where(r => r.StartDate == null)
+            .OrderBy(r => r.Id);
+        var group2 = new
+        {
+            Header = "Unknown",
+            Items = items
+        };
+
+        rightJson = new object[] { group1, group2 }.Serialize();
+    }
+
+    private async Task OnClick()
+    {
+        var symptoms = await dx29.GetSymptomsAsync(CaseId);
+        var timeline = CreateRandomTimeline(symptoms);
+        await dx29.UpsertTimelineAsync(CaseId, timeline);
+        await LoadAsync();
+    }
+
+    private SymptomTimeline CreateRandomTimeline(IList<Symptom> symptoms)
+    {
+        var random = new Random();
+        var items = symptoms.Take(3).Select(r => new SymptomTimelineItem
+        {
+            Id = r.Id,
+            StartDate = DateTime.UtcNow.AddMonths(-random.Next(6, 12)).AddDays(-random.Next(30, 60)),
+            EndDate = DateTime.UtcNow.AddMonths(-random.Next(1, 6)).AddDays(-random.Next(1, 30))
+        });
+        return new SymptomTimeline() { Items = items.ToArray() };
+    }
+}

@@ -1,0 +1,157 @@
+﻿@namespace Dx29.Web.UI.Components
+
+@inject Dx29Client dx29
+@inject LocalizationService Localize
+
+<Modal @ref="Dialog" CssClassModal="modal-md" IsCloseVisible="!IsBusy">
+    <ModalIcon>
+        @if (ErrorMessage != null)
+        {
+            <KnownIcon Name="Alert" Type="Header" />
+        }
+        else if (!IsBusy)
+        {
+            <KnownIcon Name="Share" Type="Header" />
+        }
+    </ModalIcon>
+    <ModalHeader>
+        @if (ErrorMessage != null)
+        {
+            <ModalTitle Title="@Localize["Error"]" CssTitle="text-danger" />
+        }
+        else if (!IsBusy)
+        {
+            <ModalTitle Title="@Localize["{0} case", _action]" />
+        }
+    </ModalHeader>
+    <ModalBody>
+        @if (ErrorMessage != null)
+        {
+            <div class="text-center pt-2 text-danger">@ErrorMessage</div>
+            <Separator />
+        }
+        else if (IsBusy)
+        {
+            <Separator />
+            <div class="spinner spinner-primary spinner-center text-center"></div>
+            <div class="text-center pt-6"><label>@Localize["Please wait, we are processing the action: {0} case ...", _action]</label></div>
+        }
+        else
+        {
+            <EditForm EditContext="@editContext">
+                <DataAnnotationsValidator />
+                @if ((IsSharedCase != null) && (_action != null))
+                {
+                    <div class="form-group">
+                        @if (_action.ToLower() == "share")
+                        {
+                            <label>@Localize["Please, enter the destination email"]*</label>
+                            <InputText Class="form-control form-control-solid" name="Email" placeholder="Destination Email" autocomplete="off" @bind-Value="Model.Email" />
+                            <div class="mt-2 text-danger">
+                                <ValidationMessage For="() => Model.Email" />
+                            </div>
+                        }
+                        else
+                        {
+                            <label>@Localize["You will {0} the case: ", _action]@Model.Email</label>
+                        }
+
+                    </div>
+                    <div class="form-group">
+                        @if (IsSharedCase == true)
+                        {
+                            if ((_action.ToLower() == "accept") || (_action.ToLower() == "share"))
+                            {
+                                <label>@Localize["As this case has been shared with you, the owner must confirm your request. Write here your message to the owner of the case."]</label>
+                            }
+                            else if ((_action.ToLower() == "revoke")||(_action.ToLower() == "delete"))
+                            {
+                                <label>@Localize["As this case has been shared with you, the owner will be informed. Write here your message to the owner of the case."]</label>
+                            }
+                        }
+                        else
+                        {
+                            <label>@Localize["Write your message to the recipient of the case here, indicating the reasons why you want to carry out the action: {0} the case.", _action]</label>
+                        }
+                        <textarea class="form-control form-control-solid" rows="4" @bind="Model.Message"></textarea>
+                    </div>
+                    @if (_action.ToLower() == "share")
+                    {
+                        <div class="form-group">
+                            <p class="text-black-50">@Localize["Fields marked with an asterisk (*) are mandatory."]</p>
+                        </div>
+                    }
+                }
+            </EditForm>
+            <Separator />
+        }
+    </ModalBody>
+    <ModalFooter>
+        @if (ErrorMessage != null)
+        {
+            <ModalAccept Accept="@Localize["Ok"]" />
+        }
+        else if (!IsBusy)
+        {
+            <ModalAcceptCancel Accept="@Localize[_action]" Cancel="@Localize["Cancel"]" OnAccept="AcceptHandler" OnCancel="OnCancel" />
+        }
+    </ModalFooter>
+</Modal>
+
+@code
+{
+    [Parameter]
+    public ShareModel Model { get; set; }
+
+    [Parameter]
+    public bool? IsSharedCase { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnAccept { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+
+    public string ErrorMessage { get; set; }
+
+    private Modal Dialog;
+
+    private EditContext editContext;
+
+    private bool IsBusy = false;
+
+    private string _action = null;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(Model);
+    }
+
+    public void Open(string action)
+    {
+        _action = action;
+        IsBusy = false;
+        ErrorMessage = null;
+        Model.Message = null;
+        StateHasChanged();
+        Dialog.Open();
+    }
+
+    private async void AcceptHandler()
+    {
+        if (editContext.Validate())
+        {
+            IsBusy = true;
+            await OnAccept.InvokeAsync();
+            if (ErrorMessage != null)
+            {
+                StateHasChanged();
+            }
+            else
+            {
+                Dialog.Close();
+            }
+        }
+    }
+}

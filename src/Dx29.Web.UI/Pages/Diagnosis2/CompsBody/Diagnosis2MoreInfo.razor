@@ -1,0 +1,164 @@
+﻿
+@namespace Dx29.Web.UI.Components
+@inject LocalizationService Localize
+
+@inject Dx29Client dx29
+
+<div class="row p-4">
+    @if ((MoreInfo != null) && (MoreInfo?.Count > 0) && (!_loading) && !(showArticleList))
+    {
+        @if (articleSelected != null)
+        {
+            <div class="col-xl-6 text-left">
+                <h3>@articleSelected</h3>
+            </div>
+            <div class="col-xl-6 text-right">
+                <a href="#" class="text-primary" @onclick="()=>GoBackToListArticles()" @onclick:preventDefault>
+                    <i class="icon-sm text-primary flaticon2-left-arrow mr-1"></i> @Localize["Back to the list of articles"]
+                </a>
+            </div>
+        }
+        <Repeater Items="@MoreInfo" Context="moreInfoItem">
+            <div class="col-xl-12 mt-4 mb-2">
+                <h4 class="font-weight-bolder">@moreInfoItem.title</h4>
+            </div>
+            @if ((moreInfoItem.title != "Enlaces externos") && (moreInfoItem.title != "External links"))
+            {
+                @if ((moreInfoItem.content != null) && (moreInfoItem.content.Length > 0))
+                {
+                    <div class="col-xl-12 mb-4">
+                        <span class="text-sm-left" style="white-space: pre-wrap;">@moreInfoItem.content</span>
+                    </div>
+                }
+                @if (moreInfoItem.items.Count > 0)
+                {
+                    <Repeater Items="@moreInfoItem.items" Context="item">
+                        <div class="col-xl-12 mb-4">
+                            <h6 class="font-weight-bolder">@item.title</h6>
+                            <span class="text-sm-left" style="white-space: pre-wrap;">@item.content</span>
+                        </div>
+                    </Repeater>
+                }
+
+            }
+            @if ((moreInfoItem.title == "Enlaces externos") || (moreInfoItem.title == "External links"))
+            {
+                <div class="col-xl-12 mb-4">
+                    <Repeater Items="@moreInfoItem.urls" Context="url">
+                        <a href="@url" target="_blank">@url</a>
+                        <br />
+                    </Repeater>
+                </div>
+            }
+        </Repeater>
+    }
+    else if ((MoreInfoList != null) && (MoreInfoList?.query.search.Count > 0) && (!_loading) && (showArticleList))
+    {
+        <div class="col-xl-12 mb-4">
+            <span class="text-black-50">@Localize["We have found {0} results for {1}", MoreInfoList.query.search.Count, SelectedDiseaseName]</span>
+        </div>
+        <Repeater Items="@MoreInfoList.query.search" Context="moreInfoListItem">
+            <div class="col-xl-12 mt-2 mb-2">
+                <h6 class="font-weight-bolder">
+                    <a class="text-secondary" href="#" @onclick="()=>GotoArticle(moreInfoListItem.title)" @onclick:preventDefault>
+                        @moreInfoListItem.title
+                    </a>
+                </h6>
+                <span>@((MarkupString)moreInfoListItem.snippet)</span>
+            </div>
+        </Repeater>
+    }
+    else if (_loading)
+    {
+        <div class="col-xl-12 my-4">
+            <div class="d-flex flex-column align-items-center w-100">
+                <Spinner CssClass="spinner-xl" />
+            </div>
+        </div>
+    }
+    else if(SelectedDiseaseName !=null)
+    {
+        <div class="col-xl-12">
+            <span>@Localize["Sorry, at this time we do not have more information data data for {0}. I you can provide information, contact us here", SelectedDiseaseName]</span>
+        </div>
+        <div class="col-xl-12 text-center mt-4">
+            <ButtonIcon Text="@Localize["Contact"]" OnClick="() => OnContactAsync()" CssClass="min-w-160p">
+                <Icon><i class="icon-lg  flaticon-email"></i></Icon>
+            </ButtonIcon>
+        </div>
+    }
+</div>
+
+<DialogSendEmailSupport @ref="DialogSendEmail" Dx29Section="@Localize["Disease resources HUB"]" Subject=@Localize["More information"] Info="@InfoSupport"></DialogSendEmailSupport>
+
+
+@code
+{
+    [Parameter]
+    public string CaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseId { get; set; }
+
+    [Parameter]
+    public string SelectedDiseaseName { get; set; } = null;
+
+    private DiagnosisMoreInfo MoreInfo = null;
+    private DiagnosisMoreInfoList MoreInfoList = null;
+
+    private bool _loading = false;
+
+    private bool showArticleList = false;
+    private string articleSelected = null;
+
+    private DialogSendEmailSupport DialogSendEmail;
+    private SupportInfoEmail InfoSupport = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        InfoSupport = null;
+        MoreInfo = await dx29.GetMoreInfoAsync(SelectedDiseaseId);
+        if ((MoreInfo == null) || (MoreInfo?.Count == 0))
+        {
+            MoreInfoList = await dx29.GetMoreInfoListAsync(SelectedDiseaseId);
+            showArticleList = true;
+        }
+        else
+        {
+            showArticleList = false;
+            articleSelected = null;
+        }
+        await base.OnParametersSetAsync();
+        _loading = false;
+    }
+
+    private async Task GotoArticle(string articleTitle)
+    {
+        MoreInfo = await dx29.GetMoreInfoSelectedAsync(articleTitle);
+        showArticleList = false;
+        articleSelected = articleTitle;
+        StateHasChanged();
+    }
+
+    private void GoBackToListArticles()
+    {
+        MoreInfo = null;
+        showArticleList = true;
+        articleSelected = null;
+        StateHasChanged();
+    }
+
+    private async Task OnContactAsync()
+    {
+        SetInfoSupport();
+        await DialogSendEmail.OpenAsync();
+    }
+    private void SetInfoSupport()
+    {
+        InfoSupport = new SupportInfoEmail();
+        InfoSupport.Add("Selected disease", SelectedDiseaseName);
+        InfoSupport.Add("Selected disease Id", SelectedDiseaseId);
+    }
+
+}

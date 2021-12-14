@@ -1,0 +1,107 @@
+﻿@page "/DataAnalysis2/New/{caseId}"
+
+@inherits PageCase
+
+@using Microsoft.AspNetCore.WebUtilities;
+@inject NavigationManager navManager
+
+@inject Dx29Client dx29
+
+<Separator />
+
+<Wizard LabelPrevious="@Localize["Previous"]" LabelNext="@Localize["Next"]" LabelFinish="@Localize["Finish"]" OnNavigation="OnNavigation" OnClose="OnClose" OnFinish="OnFinish">
+    <WizardSteps>
+        <WizardStep Position="0">
+            <Icon>
+                <i class="icon-2x fas fa-hand-holding-medical opa-75"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Review key symptoms"]</h3>
+                <div class="wizard-desc">@Localize["Review key symptoms for data analysis"]</div>
+            </Label>
+        </WizardStep>
+        <WizardStep Position="1">
+            <Icon>
+                <i class="icon-xl flaticon2-list-2"></i>
+            </Icon>
+            <Label>
+                <h3 class="wizard-title">@Localize["Summary"]</h3>
+                <div class="wizard-desc">@Localize["Review selection and confirm"]</div>
+            </Label>
+        </WizardStep>
+    </WizardSteps>
+
+    <WizardStepContents>
+        <WizardStepContent Position="0">
+            <AnalysisStep1_2 @ref="step1" Items="Items" />
+        </WizardStepContent>
+        <WizardStepContent Position="1">
+            <AnalysisStep2_2 @ref="step2" Items="Items" />
+        </WizardStepContent>
+    </WizardStepContents>
+</Wizard>
+
+<DialogBusy @ref="DialogBusy" Message="@Localize["Executing Data Analysis, please wait..."]" />
+
+@code
+{
+    private AnalysisStep1_2 step1;
+    private AnalysisStep2_2 step2;
+
+    private IList<SymptomDesc> Items = null;
+
+    private DialogBusy DialogBusy;
+
+    private Dictionary<string, string> query = new Dictionary<string, string> {
+        { "edit", "true" }
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CaseId != null)
+        {
+            var symptoms = await dx29.GetSymptomsDescAsync(CaseId);
+            Items = symptoms.Where(r => r.Categories != null && r.IsSelected)
+                .OrderBy(r => r.Name)
+                .OrderBy(r => r.IsKeySymptom ? 0 : 1)
+                .ToList();
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private void OnNavigation(WizardNavigationArgs args)
+    {
+        if (args.CurrentIndex == 0)
+        {
+            args.Cancel = !step1.Validate();
+        }
+        else if (args.NewIndex == 1)
+        {
+            step2.Refresh();
+        }
+    }
+
+    private void OnClose()
+    {
+        navManager.NavigateTo(QueryHelpers.AddQueryString(BackHRef, query));
+        //base.GoBack(BackHRef);
+    }
+
+    private async Task OnFinish()
+    {
+        await DialogBusy.OpenAsync();
+        var selectedSymptoms = Items.Where(r => r.IsKeySymptom).Select(r => r.Id).ToList();
+        var id = await dx29.CreateAnalysisAsync(CaseId, selectedSymptoms);
+        await DialogBusy.CloseAsync();
+        navManager.NavigateTo(QueryHelpers.AddQueryString(BackHRef, query));
+        //base.GoBack(BackHRef);
+    }
+
+    private void BackToDashboard()
+    {
+        navManager.NavigateTo(QueryHelpers.AddQueryString(BackHRef, query));
+        //NavigationManager.NavigateTo(BackHRef);
+    }
+
+    private string BackHRef => $"/Diagnosis2/{CaseId}";
+}

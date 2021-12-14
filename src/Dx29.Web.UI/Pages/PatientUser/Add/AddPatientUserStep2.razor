@@ -1,0 +1,47 @@
+﻿@namespace Dx29.Web.UI.Pages
+
+@inherits ComponentEx
+
+@inject Dx29Client dx29
+@inject IAccessTokenProvider TokenProvider
+
+<h3>@Localize["Medical Files"]</h3>
+<h4 class="mb-6 text-black-50">@Localize["Upload medical records or genotype files"]</h4>
+
+<div class="font-size-h6 font-italic">@Localize["These files will be used to extract symptoms, genes and other important information to facilitate the analysis. You can add or remove files at anytime in the dashboard. If you don't have any file to upload, press next."]</div>
+
+<div class="mb-6"></div>
+
+<FileUpload Url="@Url" AccessToken="@AccessToken" FileItems="FileItems" ExistingNames="ExistingNames" AcceptExtensions=".txt,.pdf,.doc,.docx,.jpg,.png,.vcf,.vcf.gz" OnReadyStateChanged="OnReadyStateChanged">
+    @Localize["Click or drop files here to upload"]
+</FileUpload>
+
+<div class="mb-6"></div>
+
+<div class="font-italic">@Localize["Supported files for medical reports are: .pdf, .doc, .docx, .jpg, .png, .txt"]</div>
+<div class="font-italic">@Localize["Supported files for genotype are: .vcf, .vcf.gz"]</div>
+
+@code
+{
+    [Parameter]
+    public Dictionary<string, FileItem> FileItems { get; set; }
+
+    private string Url => $"/api/v1/FileStorage/temp";
+
+    private string AccessToken;
+
+    private List<string> ExistingNames = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var accessTokenResult = await TokenProvider.RequestAccessToken();
+        if (accessTokenResult.TryGetToken(out var token))
+        {
+            AccessToken = token.Value;
+        }
+    }
+
+    private void OnReadyStateChanged(bool isReady)
+    {
+    }
+}

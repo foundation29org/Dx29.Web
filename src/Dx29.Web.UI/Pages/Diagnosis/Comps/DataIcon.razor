@@ -1,0 +1,30 @@
+﻿@namespace Dx29.Web.UI.Components
+
+<div class="flex-fill text-center">
+    <div>
+        @Icon
+        <span>&nbsp;</span>
+        <span class="font-size-h4 font-weight-bolder">@Text</span>
+        <span>&nbsp;</span>
+        <div>
+            <a href="@HRef">
+                <span class="">@Label</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public RenderFragment Icon { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public string HRef { get; set; }
+}

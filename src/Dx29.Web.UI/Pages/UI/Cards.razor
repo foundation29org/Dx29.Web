@@ -1,0 +1,65 @@
+﻿@page "/UI/Cards"
+
+<Card>
+    <CardIcon>
+        <i class="icon-2x flaticon2-crisp-icons text-primary"></i>
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="Medical Reports" Subtitle="@TotalCount" />
+    </CardHeader>
+</Card>
+
+<Separator />
+
+<Card IsLoading="IsLoading">
+    <CardIcon>
+        <i class="icon-2x flaticon2-crisp-icons text-primary"></i>
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="Medical Reports" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardBody>
+    </CardBody>
+</Card>
+
+<Separator />
+
+<Card IsLoading="IsLoading" HRef="@HRef">
+    <CardBack>
+        <CardBackButton BackHRef="@BackHRef" />
+    </CardBack>
+    <CardIcon>
+        <i class="icon-2x flaticon2-crisp-icons text-primary"></i>
+    </CardIcon>
+    <CardHeader>
+        <CardTitle IsLoading="IsLoading" Title="Medical Reports" Subtitle="@TotalCount" />
+    </CardHeader>
+    <CardToolbar>
+        <button class="btn btn-lg btn-light-primary" style="min-width: 160px">
+            <i class="icon-md flaticon2-add-1"></i>
+            <span>Add Medical Report</span>
+        </button>
+    </CardToolbar>
+    <CardBody>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus orci velit, dignissim nec sagittis a, bibendum vel justo. Duis vitae odio eu metus molestie placerat in quis nisl. Nunc eget leo et nisl scelerisque ultricies ac sit amet dui. In faucibus molestie ullamcorper. Ut libero nisl, placerat non volutpat a, lobortis et mauris. Donec egestas quam et quam pharetra bibendum congue turpis tempor. Morbi risus risus, lacinia sollicitudin ullamcorper in, sollicitudin eget purus. Morbi nec ligula est. Donec quis placerat velit. Etiam a eros elit. Proin libero lectus, suscipit id facilisis ut, faucibus vel dolor. Mauris laoreet ultrices arcu, et fermentum tortor tempus ut.</p>
+    </CardBody>
+</Card>
+
+@code
+{
+    private IList<string> Items = null;
+
+    private bool IsLoading => Items == null;
+
+    private string TotalCount = "Loading...";
+
+    private string HRef = "#";
+    private string BackHRef = "#";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(5000);
+        Items = new List<string>();
+        TotalCount = $"Total {Items.Count} reports";
+    }
+}
