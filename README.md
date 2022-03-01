@@ -4,10 +4,7 @@
 
 Dx29 Web
 ==============================================================================================================================================
-**Dx29.Web**
 [![Build Status](https://f29.visualstudio.com/Dx29%20v2/_apis/build/status/DEV-WEB/Dx29.Web?branchName=develop)](https://f29.visualstudio.com/Dx29%20v2/_build/latest?definitionId=104&branchName=develop)
-
-**Dx29.Management**
 [![Build Status](https://f29.visualstudio.com/Dx29%20v2/_apis/build/status/DEV-WEB/Dx29.Web.Management?branchName=develop)](https://f29.visualstudio.com/Dx29%20v2/_build/latest?definitionId=106&branchName=develop)
 
 <p>&nbsp;</p>
